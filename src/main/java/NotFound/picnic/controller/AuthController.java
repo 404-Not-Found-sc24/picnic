@@ -44,7 +44,7 @@ public class AuthController {
         return "success";
     }
 
-    @PatchMapping("/reissueToken")
+    @PatchMapping("/reissue-token")
     public ResponseEntity<LoginResponseDto>  reissueAccessToken(@RequestBody ReissueTokenDto refreshToken) {
         LoginResponseDto token = this.authService.reissueAccessToken(refreshToken);
         return ResponseEntity.status(HttpStatus.OK).body(token);
