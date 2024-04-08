@@ -22,9 +22,6 @@ public class Record {
     @Column
     private String content;
 
-    @Column
-    private String imgUrl;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn (name = "place_id")
     @ToString.Exclude

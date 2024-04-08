@@ -24,6 +24,9 @@ public class Location {
     private String address;
 
     @Column
+    private String city;
+
+    @Column
     private String detail;
 
     @Column
