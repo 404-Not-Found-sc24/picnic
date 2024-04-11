@@ -32,7 +32,8 @@ public class Member {
     private String phone;
 
     @Column
-    private int role;
+    @Builder.Default
+    private int role = 0;
 
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
@@ -41,5 +42,9 @@ public class Member {
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
     private List<Approval> approvalList;
+
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @ToString.Exclude
+    private List<Approval> eventList;
 
 }
