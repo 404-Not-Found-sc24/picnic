@@ -39,6 +39,10 @@ jobs:
         JWT_ACCESS_EXPIRATION: ${{ secrets.JWT_ACCESS_EXPIRATION }}
         JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
         JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+        S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+        S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+        S3_REGION: ${{ secrets.S3_REGION }}
       run: ./gradlew build
 
     - name: Make Zip File
