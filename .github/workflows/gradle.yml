@@ -20,8 +20,7 @@ env:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ip-10-0-1-189
     permissions:
       contents: read
 
