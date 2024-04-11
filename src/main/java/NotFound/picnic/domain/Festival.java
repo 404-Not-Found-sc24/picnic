@@ -15,7 +15,7 @@ public class Festival {
     private Long festivalId;
 
     @Column
-    private String startingDate;
+    private String startDate;
 
     @Column
     private String endDate;
