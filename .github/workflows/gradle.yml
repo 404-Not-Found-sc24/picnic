@@ -30,19 +30,10 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
 
+    - name: env properties add
+      run: echo "${{ secrets.DEV_PROPERTIES}}" > ./src/main/resources/application-dev.properties
+
     - name: Build with Gradle Wrapper
-      env:
-        DATA_SOURCE_URL: ${{ secrets.DATA_SOURCE_URL }}
-        DATA_SOURCE_USERNAME: ${{ secrets.DATA_SOURCE_USERNAME }}
-        DATA_SOURCE_PW: ${{ secrets.DATA_SOURCE_PW }}
-        JWT: ${{ secrets.JWT }}
-        JWT_ACCESS_EXPIRATION: ${{ secrets.JWT_ACCESS_EXPIRATION }}
-        JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
-        JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
-        S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
-        S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
-        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
-        S3_REGION: ${{ secrets.S3_REGION }}
       run: ./gradlew build
 
     - name: Make Zip File
