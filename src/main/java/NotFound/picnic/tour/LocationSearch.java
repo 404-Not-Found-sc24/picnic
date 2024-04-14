@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/tour")
+@RequestMapping("/tour/LocationSearch")
 public class LocationSearch {
 
     private final LocationRepository locationRepository;
@@ -38,14 +38,6 @@ public class LocationSearch {
         return locationRepository.findByaddressContaining(address);
     }
 
-    @GetMapping("/bycity/accurately/{city}")
-    public List<Location> searchLocationBycity(@PathVariable String city) {
-        return locationRepository.findLocationBycity(city);
-    }
     
-    @GetMapping("/bycity/{city}")
-    public List<Location> searchLocationBycityContaining(@PathVariable String city) {
-        return locationRepository.findBycityContaining(city);
-    }
 
 }
