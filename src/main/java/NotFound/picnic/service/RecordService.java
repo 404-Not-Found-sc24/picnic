@@ -66,11 +66,6 @@ public class RecordService {
     	
     }
     
-    public String creatplace() {
-    	
-    	return "nothing";
-    }
-
 	
 
 }
