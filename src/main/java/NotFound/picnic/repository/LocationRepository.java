@@ -1,4 +1,5 @@
 package NotFound.picnic.repository;
+
 import NotFound.picnic.domain.Location;
 
 import java.util.Optional;
@@ -16,3 +17,5 @@ public interface LocationRepository extends JpaRepository<Location,Long>{
     List<Location> findByaddressContaining(String address);
     List<Location> findBycityContaining(String city);
 }
+
+
