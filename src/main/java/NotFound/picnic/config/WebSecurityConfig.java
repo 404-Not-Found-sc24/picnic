@@ -80,7 +80,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://nadueli.com", "localhost:3000")
+                .allowedOrigins("https://nadueli.com", "http://localhost:3000")
                 .allowedMethods("GET", "POST", "PATCH", "DELETE")
                 .allowCredentials(true);
     }
