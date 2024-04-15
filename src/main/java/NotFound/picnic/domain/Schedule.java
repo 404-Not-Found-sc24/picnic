@@ -29,7 +29,8 @@ public class Schedule {
     private String endDate;
 
     @Column
-    private boolean share;
+    @Builder.Default
+    private boolean share = false;
 
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
     @ToString.Exclude
