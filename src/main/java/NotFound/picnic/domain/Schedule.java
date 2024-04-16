@@ -28,7 +28,7 @@ public class Schedule {
     @Column
     private String endDate;
 
-    @Column
+    @Column(columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean share;
 
     @OneToMany(mappedBy = "schedule", fetch = FetchType.LAZY)
