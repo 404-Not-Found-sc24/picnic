@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Record {
+public class Diary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long recordId;
@@ -22,12 +22,15 @@ public class Record {
     @Column
     private String content;
 
+    @Column
+    private String weather;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn (name = "place_id")
     @ToString.Exclude
     private Place place;
 
-    @OneToMany(mappedBy = "record", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "diary", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
     private List<Image> imageList;
 }

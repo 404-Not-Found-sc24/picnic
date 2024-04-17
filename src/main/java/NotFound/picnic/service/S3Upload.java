@@ -41,7 +41,7 @@ public class S3Upload {
 		String fileName = dirName + "/" + UUID.randomUUID() + "." + uploadFile.getName();
 
 		String uploadImageUrl = putS3(uploadFile, fileName);
-		log.info("good");
+
 		removeNewFile(uploadFile);  // 로컬에 생성된 File 삭제 (MultipartFile -> File 전환 하며 로컬에 파일 생성됨)
 
 		return uploadImageUrl;      // 업로드된 파일의 S3 URL 주소 반환
@@ -49,14 +49,13 @@ public class S3Upload {
 
 	//S3 버킷에 이미지 업로드
 	private String putS3(File uploadFile, String fileName) {
-		System.out.println("bucket: " + bucket + "fileNAme: " + fileName + "uploadFIle" + uploadFile);
+
 		amazonS3Client.putObject(
 			new PutObjectRequest(bucket, fileName, uploadFile)
 				.withCannedAcl(CannedAccessControlList.PublicRead)  // PublicRead 권한으로 업로드 됨
 		);
 
-		log.info("jdkflj");
-		return amazonS3Client.getUrl(bucket, fileName).toString();
+		return fileName;
 	}
 
 	//로컬에 있는 이미지 삭제
@@ -81,5 +80,10 @@ public class S3Upload {
 			return Optional.of(convertFile);
 		}
 		return Optional.empty();
+	}
+
+	// 이미지 주소 반환
+	private String getImageUrl (String fileName) {
+			return amazonS3Client.getUrl(bucket, fileName).toString();
 	}
 }
