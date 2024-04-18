@@ -33,7 +33,5 @@ out/
 .vscode/
 .DS_Store
 
-**/src/main/resources/application-*.properties
-src/main/resources/application-*.properties
-
-12
+**/src/main/resources/application*.properties
+src/main/resources/application*.properties
