@@ -36,8 +36,8 @@ public class ScheduleController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/record/{placeId}")
-    public ResponseEntity<String> createDiary(@PathVariable(name="placeId") Long placeId, @RequestPart(value = "body") DiaryCreateDto diaryCreateDto, @RequestPart(value="images") List<MultipartFile> images) throws IOException {
-        String message = scheduleService.createDiary(placeId, diaryCreateDto, images);
+    public ResponseEntity<String> createDiary(@PathVariable(name="placeId") Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
+        String message = scheduleService.createDiary(placeId, diaryCreateDto);
         return ResponseEntity.ok().body(message);
     }
 }

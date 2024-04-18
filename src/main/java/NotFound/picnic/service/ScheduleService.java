@@ -100,7 +100,7 @@ public class ScheduleService {
 
 
     // 여행 일기 생성
-    public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto, List<MultipartFile> images) throws IOException {
+    public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
 
         Place place = placeRepository.findById(placeId).orElseThrow(() -> new NullPointerException("장소 정보가 없습니다."));
 
@@ -116,6 +116,7 @@ public class ScheduleService {
 
         diaryRepository.save(diary);
 
+        List<MultipartFile> images = diaryCreateDto.getImages();
         if (images != null) {
             images.forEach(image -> {
                 try {
