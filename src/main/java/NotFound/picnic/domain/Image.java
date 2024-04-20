@@ -2,7 +2,6 @@ package NotFound.picnic.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.dao.RecoverableDataAccessException;
 
 @Entity
 @Getter

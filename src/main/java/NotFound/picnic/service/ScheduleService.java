@@ -1,24 +1,21 @@
 package NotFound.picnic.service;
 
-import NotFound.picnic.domain.Member;
-import NotFound.picnic.domain.Place;
-import NotFound.picnic.domain.Schedule;
-import NotFound.picnic.domain.Diary;
-import NotFound.picnic.domain.Image;
+ound.picnic.domain.*;
 import NotFound.picnic.dto.PlaceCreateDto;
+import NotFound.picnic.dto.DiaryCreateDto;
 import NotFound.picnic.dto.ScheduleCreateDto;
-import NotFound.picnic.dto.SchedulePlaceDiaryGetDto;
 import NotFound.picnic.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,9 +25,11 @@ public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final PlaceRepository placeRepository;
     private final LocationRepository locationRepository;
-    private final DiaryRepository diaryRepository;
+    private final S3Upload s3Upload;
     private final ImageRepository imageRepository;
+    private final DiaryRepository diaryRepository;
 
+    // 여행 일정 생성
     public String createSchedule(ScheduleCreateDto scheduleCreateDto, Principal principal) {
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
@@ -54,6 +53,7 @@ public class ScheduleService {
         return "저장 완료";
     }
 
+    // 일정에 장소 추가
     public String createLocations(Long scheduleId, List<PlaceCreateDto> placeCreateDtoList, Principal principal) {
         // 이미 추가된 장소가 있는지 확인
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
@@ -88,7 +88,7 @@ public class ScheduleService {
         List<Place> places = placeCreateDtoList.stream()
                 .map(placeCreateDto -> Place.builder()
                         .location(locationRepository.findById(placeCreateDto.getLocationId()).orElseThrow(() -> new RuntimeException("일치하는 장소가 없습니다.")))
-                        .date(placeCreateDto.getDate())
+                                .date(placeCreateDto.getDate())
                         .time(placeCreateDto.getTime())
                         .schedule(schedule)
                         .build())
@@ -139,4 +139,44 @@ public class ScheduleService {
         }).collect(Collectors.toList());
 
     }
+
+    // 여행 일기 생성
+    public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
+
+        Place place = placeRepository.findById(placeId).orElseThrow(() -> new NullPointerException("장소 정보가 없습니다."));
+
+        if (diaryRepository.existsByPlace(place))
+            throw new IOException("이미 일기를 작성하였습니다.");
+
+        Diary diary = Diary.builder()
+                .place(place)
+                .title(diaryCreateDto.getTitle())
+                .content(diaryCreateDto.getContent())
+                .weather(diaryCreateDto.getWeather())
+                .build();
+
+        diaryRepository.save(diary);
+
+        List<MultipartFile> images = diaryCreateDto.getImages();
+        if (images != null) {
+            images.forEach(image -> {
+                try {
+                    String url = s3Upload.uploadFiles(image, "diary");
+                    Image img = Image.builder()
+                            .diary(diary)
+                            .imageUrl(url)
+                            .build();
+
+                    imageRepository.save(img);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            });
+
+        }
+
+        return "일기 저장 완료";
+    }
+
 }

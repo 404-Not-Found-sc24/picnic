@@ -1,6 +1,7 @@
 package NotFound.picnic.controller;
 
 import NotFound.picnic.dto.PlaceCreateDto;
+import NotFound.picnic.dto.DiaryCreateDto;
 import NotFound.picnic.dto.ScheduleCreateDto;
 import NotFound.picnic.dto.SchedulePlaceDiaryGetDto;
 import NotFound.picnic.service.ScheduleService;
@@ -8,13 +9,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/schedule")
+@RequestMapping("/schedule")
 public class ScheduleController {
     private final ScheduleService scheduleService;
 
@@ -32,7 +35,7 @@ public class ScheduleController {
         return ResponseEntity.ok().body(message);
     }
 
-    //@PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/records/{scheduleId}")
     public ResponseEntity<?> getSchedulePlaceDiary(@PathVariable(name="scheduleId") Long scheduleId, Principal principal){
         List<SchedulePlaceDiaryGetDto> schedulePlaceDiaryList = scheduleService.getSchedulePlaceDiary(scheduleId, principal);
