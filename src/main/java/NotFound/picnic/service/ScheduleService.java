@@ -1,6 +1,6 @@
 package NotFound.picnic.service;
 
-import NotFound.picnic.domain.*;
+ound.picnic.domain.*;
 import NotFound.picnic.dto.PlaceCreateDto;
 import NotFound.picnic.dto.DiaryCreateDto;
 import NotFound.picnic.dto.ScheduleCreateDto;
@@ -98,6 +98,47 @@ public class ScheduleService {
         return "장소 추가 완료";
     }
 
+    public List<SchedulePlaceDiaryGetDto> getSchedulePlaceDiary(Long scheduleId, Principal principal) {
+        // 존재하지 않는 scheduleId인 경우 예외 발생
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
+
+        // 존재하는 schedule에 속하는 place list 조회
+        List<Place> places = placeRepository.findBySchedule(schedule);
+
+        // SchedulePlaceDiaryGetDto로 매핑
+        return places.stream().flatMap(place -> {
+            // 각 place에 속한 diary 조회
+            List<Diary> diaryList = diaryRepository.findAllByPlace_PlaceId(place.getPlaceId());
+
+            // Stream<Diary>로 변환
+            return diaryList.stream().map(diary -> {
+                // SchedulePlaceDiaryGetDto 빌더 생성
+                SchedulePlaceDiaryGetDto.SchedulePlaceDiaryGetDtoBuilder builder = SchedulePlaceDiaryGetDto.builder()
+                        .placeID(place.getPlaceId())
+                        .locationId(place.getLocation().getLocationId())
+                        .locationName(place.getLocation().getName())
+                        .date(place.getDate())
+                        .time(place.getTime())
+                        .recordId(diary.getRecordId())
+                        .title(diary.getTitle())
+                        .content(diary.getContent());
+
+                // diary에 매칭되는 이미지 조회
+                Optional<Image> optionalImage = imageRepository.findImageUrlByDiary_RecordId(diary.getRecordId());
+                // 이미지가 존재하면 imageUrl 설정
+                String imageUrl = optionalImage.map(Image::getImageUrl).orElse(null);
+                optionalImage.ifPresentOrElse(
+                        image -> builder.imageUrl(image.getImageUrl()),
+                        () -> {} // 값이 없는 경우 아무 작업도 수행하지 않음
+                );
+
+
+                // SchedulePlaceDiaryGetDto 생성
+                return builder.build();
+            });
+        }).collect(Collectors.toList());
+
+    }
 
     // 여행 일기 생성
     public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
