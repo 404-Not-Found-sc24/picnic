@@ -1,9 +1,10 @@
 package NotFound.picnic.service;
 
-ound.picnic.domain.*;
+import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.PlaceCreateDto;
 import NotFound.picnic.dto.DiaryCreateDto;
 import NotFound.picnic.dto.ScheduleCreateDto;
+import NotFound.picnic.dto.SchedulePlaceDiaryGetDto;
 import NotFound.picnic.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
