@@ -24,7 +24,7 @@ public class Place {
 
     @OneToMany(mappedBy = "place", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
-    private List<Record> recordList;
+    private List<Diary> DiaryList;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn (name = "schedule_id")

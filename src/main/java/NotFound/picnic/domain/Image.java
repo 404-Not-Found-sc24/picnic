@@ -16,10 +16,10 @@ public class Image {
     private Long imageId;
 
     @Column
-    private Long imageUrl;
+    private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn (name = "record_id")
     @ToString.Exclude
-    private Record record;
+    private Diary diary;
 }

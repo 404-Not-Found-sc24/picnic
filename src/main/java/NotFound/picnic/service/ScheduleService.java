@@ -1,20 +1,18 @@
 package NotFound.picnic.service;
 
-import NotFound.picnic.domain.Location;
 import NotFound.picnic.domain.Member;
 import NotFound.picnic.domain.Place;
 import NotFound.picnic.domain.Schedule;
+import NotFound.picnic.domain.Diary;
+import NotFound.picnic.domain.Image;
 import NotFound.picnic.dto.PlaceCreateDto;
 import NotFound.picnic.dto.ScheduleCreateDto;
-import NotFound.picnic.repository.LocationRepository;
-import NotFound.picnic.repository.MemberRepository;
-import NotFound.picnic.repository.PlaceRepository;
-import NotFound.picnic.repository.ScheduleRepository;
+import NotFound.picnic.dto.SchedulePlaceDiaryGetDto;
+import NotFound.picnic.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -30,6 +28,8 @@ public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final PlaceRepository placeRepository;
     private final LocationRepository locationRepository;
+    private final DiaryRepository diaryRepository;
+    private final ImageRepository imageRepository;
 
     public String createSchedule(ScheduleCreateDto scheduleCreateDto, Principal principal) {
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
@@ -96,5 +96,47 @@ public class ScheduleService {
         placeRepository.saveAll(places);
 
         return "장소 추가 완료";
+    }
+
+    public List<SchedulePlaceDiaryGetDto> getSchedulePlaceDiary(Long scheduleId, Principal principal) {
+        // 존재하지 않는 scheduleId인 경우 예외 발생
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
+
+        // 존재하는 schedule에 속하는 place list 조회
+        List<Place> places = placeRepository.findBySchedule(schedule);
+
+        // SchedulePlaceDiaryGetDto로 매핑
+        return places.stream().flatMap(place -> {
+            // 각 place에 속한 diary 조회
+            List<Diary> diaryList = diaryRepository.findAllByPlace_PlaceId(place.getPlaceId());
+
+            // Stream<Diary>로 변환
+            return diaryList.stream().map(diary -> {
+                // SchedulePlaceDiaryGetDto 빌더 생성
+                SchedulePlaceDiaryGetDto.SchedulePlaceDiaryGetDtoBuilder builder = SchedulePlaceDiaryGetDto.builder()
+                        .placeID(place.getPlaceId())
+                        .locationId(place.getLocation().getLocationId())
+                        .locationName(place.getLocation().getName())
+                        .date(place.getDate())
+                        .time(place.getTime())
+                        .recordId(diary.getRecordId())
+                        .title(diary.getTitle())
+                        .content(diary.getContent());
+
+                // diary에 매칭되는 이미지 조회
+                Optional<Image> optionalImage = imageRepository.findImageUrlByDiary_RecordId(diary.getRecordId());
+                // 이미지가 존재하면 imageUrl 설정
+                String imageUrl = optionalImage.map(Image::getImageUrl).orElse(null);
+                optionalImage.ifPresentOrElse(
+                        image -> builder.imageUrl(image.getImageUrl()),
+                        () -> {} // 값이 없는 경우 아무 작업도 수행하지 않음
+                );
+
+
+                // SchedulePlaceDiaryGetDto 생성
+                return builder.build();
+            });
+        }).collect(Collectors.toList());
+
     }
 }
