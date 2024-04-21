@@ -1,25 +1,18 @@
 package NotFound.picnic.service;
 
-import NotFound.picnic.domain.Location;
-import NotFound.picnic.domain.LocationImage;
+import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.LocationGetDto;
-import NotFound.picnic.repository.LocationImageRepostiory;
-import NotFound.picnic.repository.LocationRepository;
-
+import NotFound.picnic.dto.ScheduleGetDto;
+import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import NotFound.picnic.dto.CityGetDto;
-import NotFound.picnic.repository.CityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,7 +20,13 @@ import java.util.stream.Collectors;
 public class TourService {
     private final LocationRepository locationRepository;
     private final LocationImageRepostiory locationImageRepostiory;
+    private final ScheduleRepository scheduleRepository;
+    private final MemberRepository memberRepository;
+    private final DiaryRepository diaryRepository;
+    private final ImageRepository imageRepository;
+    private final CityRepository cityRepository;
     private final S3Upload s3Upload;
+
 
     public List<LocationGetDto> GetLocations(String city, String keyword) throws UnsupportedEncodingException {
 
@@ -57,10 +56,55 @@ public class TourService {
                             .build();
                 })
                 .toList()).orElse(null);
-
     }
 
-    private final CityRepository cityRepository;
+    public List<ScheduleGetDto> GetSchedules(String city, String keyword) {
+        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword);
+        if (locations.isPresent()) {
+            List<Location> locationList = locations.get();
+
+            List<Long> locationIds = locations.get().stream()
+                    .map(Location::getLocationId)
+                    .toList();
+
+            Optional<List<Schedule>> schedules = scheduleRepository.findDistinctSchedulesByLocations(locationIds);
+
+            if (schedules.isPresent()) {
+                return schedules.get().stream()
+                        .map(schedule -> {
+                            Member member = memberRepository.findById(schedule.getMember().getMemberId()).orElseThrow();
+
+                            Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
+                            String imageUrl = null;
+
+                            if (diaries.isPresent()) {
+                                Optional<String> imageUrlOptional = diaries.get().stream()
+                                        .map(imageRepository::findTopByDiary)
+                                        .filter(Optional::isPresent)
+                                        .map(Optional::get)
+                                        .map(Image::getImageUrl)
+                                        .findFirst();
+
+                                if (imageUrlOptional.isPresent())
+                                    imageUrl = imageUrlOptional.get();
+                            }
+
+
+                            return ScheduleGetDto.builder()
+                                    .scheduleId(schedule.getScheduleId())
+                                    .name(schedule.getName())
+                                    .startDate(schedule.getStartDate())
+                                    .endDate(schedule.getEndDate())
+                                    .username(member.getName())
+                                    .imageUrl(imageUrl)
+                                    .build();
+                        })
+                        .toList();
+            }
+        }
+        return null;
+    }
+
     public List<CityGetDto> GetCities(){
        List<City> cities = cityRepository.findAll();
        return cities.stream()
@@ -69,10 +113,6 @@ public class TourService {
                         .imageUrl(city.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
-        
-                
-       
-
     }
 
 
