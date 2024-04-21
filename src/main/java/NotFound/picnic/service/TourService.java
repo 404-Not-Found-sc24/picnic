@@ -5,6 +5,10 @@ import NotFound.picnic.domain.LocationImage;
 import NotFound.picnic.dto.LocationGetDto;
 import NotFound.picnic.repository.LocationImageRepostiory;
 import NotFound.picnic.repository.LocationRepository;
+
+import NotFound.picnic.domain.City;
+import NotFound.picnic.dto.CityGetDto;
+import NotFound.picnic.repository.CityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -55,4 +59,21 @@ public class TourService {
                 .toList()).orElse(null);
 
     }
+
+    private final CityRepository cityRepository;
+    public List<CityGetDto> GetCities(){
+       List<City> cities = cityRepository.findAll();
+       return cities.stream()
+                .map(city -> CityGetDto.builder()
+                        .cityName(city.getName())
+                        .imageUrl(city.getImageUrl())
+                        .build())
+                .collect(Collectors.toList());
+        
+                
+       
+
+    }
+
+
 }
