@@ -1,6 +1,7 @@
 package NotFound.picnic.controller;
 
 import NotFound.picnic.dto.LocationGetDto;
+import NotFound.picnic.dto.CityGetDto;
 import NotFound.picnic.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +25,12 @@ public class TourController {
         List<LocationGetDto> locationGetDtoList = tourService.GetLocations(city, keyword);
         return ResponseEntity.ok().body(locationGetDtoList);
     }
+    @GetMapping("/city")
+    public ResponseEntity<List<CityGetDto>> getCities(){
+        List <CityGetDto> CityGetDtoList = tourService.GetCities();
+        return ResponseEntity.ok().body(CityGetDtoList);
+
+    }
+
 
 }
