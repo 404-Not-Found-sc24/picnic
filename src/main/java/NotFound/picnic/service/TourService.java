@@ -4,6 +4,8 @@ import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.LocationGetDto;
 import NotFound.picnic.dto.ScheduleGetDto;
 import NotFound.picnic.repository.*;
+import NotFound.picnic.domain.City;
+import NotFound.picnic.dto.CityGetDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class TourService {
     private final MemberRepository memberRepository;
     private final DiaryRepository diaryRepository;
     private final ImageRepository imageRepository;
+    private final CityRepository cityRepository;
     private final S3Upload s3Upload;
 
 
@@ -101,4 +104,16 @@ public class TourService {
         }
         return null;
     }
+
+    public List<CityGetDto> GetCities(){
+       List<City> cities = cityRepository.findAll();
+       return cities.stream()
+                .map(city -> CityGetDto.builder()
+                        .cityName(city.getName())
+                        .imageUrl(city.getImageUrl())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+
 }
