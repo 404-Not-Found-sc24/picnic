@@ -10,7 +10,12 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface DiaryRepository  extends JpaRepository<Diary, Long> {
+import java.util.List;
+
+public interface DiaryRepository extends JpaRepository<Diary, Long> {
+  
+    List<Diary> findAllByPlace_PlaceId(Long placeId);
+  
     boolean existsByPlace(Place place);
 
     @Query("select d from Diary d where d.place in (select p from Place p where p.schedule = :schedule)")

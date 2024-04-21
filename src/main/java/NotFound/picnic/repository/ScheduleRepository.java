@@ -15,5 +15,5 @@ public interface ScheduleRepository  extends JpaRepository<Schedule, Long> {
     @Query(value="select * from schedule where schedule_id in (select distinct schedule_id from place where location_id in (:locationIds)) and share = true;", nativeQuery = true)
     Optional<List<Schedule>> findDistinctSchedulesByLocations(@Param("locationIds") List<Long> locationIds);
 
-
+    Schedule findByScheduleId(Long scheduleId);
 }
