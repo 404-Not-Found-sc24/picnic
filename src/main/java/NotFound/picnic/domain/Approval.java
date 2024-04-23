@@ -3,6 +3,8 @@ package NotFound.picnic.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -54,4 +56,8 @@ public class Approval {
     @JoinColumn (name = "schedule_id")
     @ToString.Exclude
     private Schedule schedule;
+
+    @OneToMany(mappedBy = "approval", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @ToString.Exclude
+    private List<ApprovalImage> approvalImageList;
 }

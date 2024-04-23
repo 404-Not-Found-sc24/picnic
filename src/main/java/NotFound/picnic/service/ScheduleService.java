@@ -121,12 +121,12 @@ public class ScheduleService {
                         .locationName(place.getLocation().getName())
                         .date(place.getDate())
                         .time(place.getTime())
-                        .recordId(diary.getRecordId())
+                        .recordId(diary.getDiaryId())
                         .title(diary.getTitle())
                         .content(diary.getContent());
 
                 // diary에 매칭되는 이미지 조회
-                Optional<Image> optionalImage = imageRepository.findImageUrlByDiary_RecordId(diary.getRecordId());
+                Optional<Image> optionalImage = imageRepository.findImageUrlByDiary_DiaryId(diary.getDiaryId());
                 // 이미지가 존재하면 imageUrl 설정
                 String imageUrl = optionalImage.map(Image::getImageUrl).orElse(null);
                 optionalImage.ifPresentOrElse(

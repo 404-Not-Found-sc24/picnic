@@ -10,5 +10,5 @@ import java.util.List;
 public interface ImageRepository extends JpaRepository<Image, Long> {
     Optional<Image> findTopByDiary(Diary diary);
   
-    Optional <Image> findImageUrlByDiary_RecordId(Long recordId);
+    Optional <Image> findImageUrlByDiary_DiaryId(Long diaryId);
 }
