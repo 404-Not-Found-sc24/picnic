@@ -1,5 +1,6 @@
 package NotFound.picnic.controller;
 
+import NotFound.picnic.dto.LocationDetailDto;
 import NotFound.picnic.dto.LocationGetDto;
 import NotFound.picnic.dto.ScheduleGetDto;
 import NotFound.picnic.dto.CityGetDto;
@@ -45,5 +46,11 @@ public class TourController {
     public ResponseEntity<String> duplicateSchedule(@PathVariable(name="scheduleID") Long scheduleId, Principal principal){
         String response = tourService.DuplicateSchedule(scheduleId, principal);
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("/location/{locationId}")
+    public ResponseEntity<LocationDetailDto> getLocationDetail(@PathVariable(name="locationId") Long locationId){
+        LocationDetailDto locationDetailDto = tourService.GetLocationDetail(locationId);
+        return ResponseEntity.ok().body(locationDetailDto);
     }
 }

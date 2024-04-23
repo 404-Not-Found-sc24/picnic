@@ -1,6 +1,7 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
+import NotFound.picnic.dto.LocationDetailDto;
 import NotFound.picnic.dto.LocationGetDto;
 import NotFound.picnic.dto.ScheduleGetDto;
 import NotFound.picnic.repository.*;
@@ -28,6 +29,13 @@ public class TourService {
     private final DiaryRepository diaryRepository;
     private final ImageRepository imageRepository;
     private final CityRepository cityRepository;
+    private final AccommodationRepository accommodationRepository;
+    private final CultureRepository cultureRepository;
+    private final FestivalRepository festivalRepository;
+    private final LeisureRepository leisureRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final ShoppingRepository shoppingRepository;
+    private final TourRepository tourRepository;
     private final S3Upload s3Upload;
 
 
@@ -145,4 +153,106 @@ public class TourService {
         return "일정 복제 완료";
     }
 
+    public LocationDetailDto GetLocationDetail(Long locationId){
+
+        //location check
+        Location location = locationRepository.findByLocationId(locationId).orElseThrow();
+        //division check
+        String division = location.getDivision();
+        //location dto create
+        LocationDetailDto locationDetail = LocationDetailDto.builder()
+                .name(location.getName())
+                .address(location.getAddress())
+                .latitude(location.getLatitude())
+                .longitude(location.getLongitude())
+                .division(location.getDivision())
+                .phone(location.getPhone())
+                .build();
+
+        //Accommodation
+        if(division.contains("숙박")){
+            Accommodation accommodation = accommodationRepository.findByLocation_LocationId(locationId);
+            locationDetail.setAccommodation(LocationDetailDto.Accommodation.builder()
+                    .checkIn(accommodation.getCheckIn())
+                    .checkOut(accommodation.getCheckOut())
+                    .cook(accommodation.getCook())
+                    .detail(accommodation.getDetail())
+                    .parking(accommodation.getParking())
+                    .reservation(accommodation.getReservation())
+                    .build());
+        }
+        //Culture
+        else if (division.contains("문화시설")) {
+            Culture culture = cultureRepository.findByLocation_LocationId(locationId);
+            locationDetail.setCulture(LocationDetailDto.Culture.builder()
+                    .babycar(culture.getBabycar())
+                    .detail(culture.getDetail())
+                    .discount(culture.getDiscount())
+                    .fee(culture.getFee())
+                    .offDate(culture.getOffDate())
+                    .parking(culture.getParking())
+                    .pet(culture.getPet())
+                    .time(culture.getTime())
+                    .build());
+        }
+        //Festival
+        else if (division.contains("축제 공연 행사")) {
+            Festival festival = festivalRepository.findByLocation_LocationId(locationId);
+            locationDetail.setFestival(LocationDetailDto.Festival.builder()
+                    .detail(festival.getDetail())
+                    .startDate(festival.getStartDate())
+                    .endDate(festival.getEndDate())
+                    .fee(festival.getFee())
+                    .time(festival.getTime())
+                    .build());
+        }
+        //Leisure
+        else if (division.contains("레포츠")) {
+            Leisure leisure = leisureRepository.findByLocation_LocationId(locationId);
+            locationDetail.setLeisure(LocationDetailDto.Leisure.builder()
+                    .babycar(leisure.getBabycar())
+                    .detail(leisure.getDetail())
+                    .fee(leisure.getFee())
+                    .openDate(leisure.getOpenDate())
+                    .offDate(leisure.getOffDate())
+                    .parking(leisure.getParking())
+                    .pet(leisure.getPet())
+                    .time(leisure.getTime())
+                    .build());
+        }
+        //Restaurant
+        else if (division.contains("음식점")) {
+            Restaurant restaurant = restaurantRepository.findByLocation_LocationId(locationId);
+            locationDetail.setRestaurant(LocationDetailDto.Restaurant.builder()
+                    .dayOff(restaurant.getDayOff())
+                    .mainMenu(restaurant.getMainMenu())
+                    .menu(restaurant.getMenu())
+                    .packaging(restaurant.getPackaging())
+                    .build());
+        }
+        //Shopping
+        else if (division.contains("쇼핑")) {
+            Shopping shopping = shoppingRepository.findByLocation_LocationId(locationId);
+            locationDetail.setShopping(LocationDetailDto.Shopping.builder()
+                    .babycar(shopping.getBabycar())
+                    .offDate(shopping.getOffDate())
+                    .parking(shopping.getParking())
+                    .pet(shopping.getPet())
+                    .time(shopping.getTime())
+                    .build());
+
+        }
+        //Tour
+        else if (division.contains("관광지")) {
+            Tour tour = tourRepository.findByLocation_LocationId(locationId);
+            locationDetail.setTour(LocationDetailDto.Tour.builder()
+                    .detail(tour.getDetail())
+                    .offDate(tour.getOffDate())
+                    .parking(tour.getParking())
+                    .pet(tour.getPet())
+                    .time(tour.getTime())
+                    .build());
+        }
+        return locationDetail;
+    }
 }
