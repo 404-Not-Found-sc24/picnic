@@ -8,11 +8,14 @@ import NotFound.picnic.domain.City;
 import NotFound.picnic.dto.CityGetDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -106,8 +109,8 @@ public class TourService {
     }
 
     public List<CityGetDto> GetCities(){
-       List<City> cities = cityRepository.findAll();
-       return cities.stream()
+        List<City> cities = cityRepository.findAll();
+        return cities.stream()
                 .map(city -> CityGetDto.builder()
                         .cityName(city.getName())
                         .imageUrl(city.getImageUrl())
@@ -115,5 +118,31 @@ public class TourService {
                 .collect(Collectors.toList());
     }
 
+    public String DuplicateSchedule(Long scheduleId, Principal principal){
+
+        // User validate
+        Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
+
+        if (optionalMember.isEmpty()) {
+            throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
+        }
+        Member member = optionalMember.get();
+        // schedule Id validate
+        Schedule scheduleOld = scheduleRepository.findById(scheduleId).orElseThrow();
+
+        // Duplicate doing
+
+        Schedule scheduleNew = Schedule.builder()
+                .name(scheduleOld.getName())
+                .location(scheduleOld.getLocation())
+                .startDate(scheduleOld.getStartDate())
+                .endDate(scheduleOld.getEndDate())
+                .member(member)
+                .build();
+
+        scheduleRepository.save(scheduleNew);
+
+        return "일정 복제 완료";
+    }
 
 }

@@ -6,9 +6,11 @@ import NotFound.picnic.dto.CityGetDto;
 import NotFound.picnic.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
+import java.security.Principal;
 import java.util.List;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,4 +40,10 @@ public class TourController {
         return ResponseEntity.ok().body(schedulesGetDtoList);
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/schedules/{scheduleId}")
+    public ResponseEntity<String> duplicateSchedule(@PathVariable(name="scheduleID") Long scheduleId, Principal principal){
+        String response = tourService.DuplicateSchedule(scheduleId, principal);
+        return ResponseEntity.ok().body(response);
+    }
 }
