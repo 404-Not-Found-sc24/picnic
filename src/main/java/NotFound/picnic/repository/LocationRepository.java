@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.List;
 
 public interface LocationRepository  extends JpaRepository<Location, Long> {
-    Location findByLocationId(Long locationId);
+    Optional<Location> findByLocationId(Long locationId);
 
     String findNameByLocationId(Long locationId);
 
