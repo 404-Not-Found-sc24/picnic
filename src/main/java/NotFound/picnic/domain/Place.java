@@ -22,9 +22,9 @@ public class Place {
     @Column
     private String time;
 
-    @OneToMany(mappedBy = "place", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToOne(mappedBy = "place", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
-    private List<Diary> diaryList;
+    private Diary diary;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn (name = "schedule_id")
