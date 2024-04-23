@@ -33,6 +33,9 @@ jobs:
     - name: env properties add
       run: echo "${{ secrets.DEV_PROPERTIES}}" > ./src/main/resources/application-dev.properties
 
+    - name: logback-spring add
+      run: echo "${{ secrets.LOGBACK_SPRING}}" > ./src/main/resources/logback-spring.xml
+
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
