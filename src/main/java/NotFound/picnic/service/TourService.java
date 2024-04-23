@@ -127,7 +127,7 @@ public class TourService {
     }
 
     public String DuplicateSchedule(Long scheduleId, Principal principal){
-
+      
         // User validate
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
