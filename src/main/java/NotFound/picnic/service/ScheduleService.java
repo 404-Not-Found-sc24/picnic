@@ -112,6 +112,11 @@ public class ScheduleService {
             // 각 place에 속한 diary 조회
             List<Diary> diaryList = diaryRepository.findAllByPlace_PlaceId(place.getPlaceId());
 
+            // diary가 없으면 빈 Diary 객체 생성
+            if (diaryList.isEmpty()) {
+                diaryList.add(new Diary()); // 빈 Diary 객체 추가
+            }
+
             // Stream<Diary>로 변환
             return diaryList.stream().map(diary -> {
                 // SchedulePlaceDiaryGetDto 빌더 생성
@@ -134,13 +139,12 @@ public class ScheduleService {
                         () -> {} // 값이 없는 경우 아무 작업도 수행하지 않음
                 );
 
-
                 // SchedulePlaceDiaryGetDto 생성
                 return builder.build();
             });
         }).collect(Collectors.toList());
-
     }
+
 
     // 여행 일기 생성
     public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
