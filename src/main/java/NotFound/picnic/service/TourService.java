@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -124,8 +125,7 @@ public class TourService {
                 .collect(Collectors.toList());
     }
 
-    public String DuplicateSchedule(Long scheduleId, Principal principal){
-      
+    public String DuplicateSchedule(Long scheduleId,ScheduleDuplicateDto scheduleDuplicateDto, Principal principal){
         // User validate
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
@@ -136,18 +136,28 @@ public class TourService {
         // schedule Id validate
         Schedule scheduleOld = scheduleRepository.findById(scheduleId).orElseThrow();
 
-        // Duplicate doing
-
+        // Duplicate schedule
         Schedule scheduleNew = Schedule.builder()
-                .name(scheduleOld.getName())
+                .name(scheduleDuplicateDto.getName())
                 .location(scheduleOld.getLocation())
-                .startDate(scheduleOld.getStartDate())
-                .endDate(scheduleOld.getEndDate())
+                .startDate(scheduleDuplicateDto.getStartDate())
+                .endDate(scheduleDuplicateDto.getEndDate())
                 .member(member)
                 .build();
 
-        scheduleRepository.save(scheduleNew);
+        Schedule savedSchedule = scheduleRepository.save(scheduleNew);
+        //Duplicate place
+        List<Place> places = placeRepository.findBySchedule(scheduleOld);
 
+        for(Place place : places){
+            Place place_new = Place.builder()
+                    .date(place.getDate())
+                    .time(place.getTime())
+                    .location(place.getLocation())
+                    .schedule(savedSchedule)
+                    .build();
+            Place test = placeRepository.save(place_new);
+        }
         return "일정 복제 완료";
     }
 
