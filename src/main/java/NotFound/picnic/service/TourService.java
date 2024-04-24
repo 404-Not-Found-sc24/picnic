@@ -54,7 +54,7 @@ public class TourService {
                     Optional<LocationImage> image = locationImageRepostiory.findTopByLocation(location);
                     String imageUrl = null;
                     if (image.isPresent())
-                        imageUrl = s3Upload.getImageUrl(image.get().getImageUrl());
+                        imageUrl = image.get().getImageUrl();
 
                     return LocationGetDto.builder()
                             .locationId(location.getLocationId())
