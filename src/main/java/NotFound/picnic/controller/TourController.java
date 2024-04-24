@@ -1,9 +1,6 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.LocationDetailDto;
-import NotFound.picnic.dto.LocationGetDto;
-import NotFound.picnic.dto.ScheduleGetDto;
-import NotFound.picnic.dto.CityGetDto;
+import NotFound.picnic.dto.*;
 import NotFound.picnic.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -53,4 +50,12 @@ public class TourController {
         LocationDetailDto locationDetailDto = tourService.GetLocationDetail(locationId);
         return ResponseEntity.ok().body(locationDetailDto);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/schedules")
+    public ResponseEntity<String> addPlaceToSchedule(@RequestBody ScheduleAddPlaceDto scheduleAddPlaceDto, Principal principal){
+        String response = tourService.AddPlaceToSchedule(scheduleAddPlaceDto, principal);
+        return ResponseEntity.ok().body(response);
+    }
+
 }
