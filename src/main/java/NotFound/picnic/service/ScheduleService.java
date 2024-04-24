@@ -112,6 +112,11 @@ public class ScheduleService {
             // 각 place에 속한 diary 조회
             List<Diary> diaryList = diaryRepository.findAllByPlace_PlaceId(place.getPlaceId());
 
+            // diary가 없으면 빈 Diary 객체 생성
+            if (diaryList.isEmpty()) {
+                diaryList.add(new Diary()); // 빈 Diary 객체 추가
+            }
+
             // Stream<Diary>로 변환
             return diaryList.stream().map(diary -> {
                 // SchedulePlaceDiaryGetDto 빌더 생성
