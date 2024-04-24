@@ -43,7 +43,7 @@ public class TourController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/schedules/{scheduleId}")
-    public ResponseEntity<String> duplicateSchedule(@PathVariable(name="scheduleID") Long scheduleId, Principal principal){
+    public ResponseEntity<String> duplicateSchedule(@PathVariable(name="scheduleId") Long scheduleId, Principal principal){
         String response = tourService.DuplicateSchedule(scheduleId, principal);
         return ResponseEntity.ok().body(response);
     }
