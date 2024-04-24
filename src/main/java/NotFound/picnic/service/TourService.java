@@ -1,12 +1,9 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
-import NotFound.picnic.dto.LocationDetailDto;
-import NotFound.picnic.dto.LocationGetDto;
-import NotFound.picnic.dto.ScheduleGetDto;
+import NotFound.picnic.dto.*;
 import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
-import NotFound.picnic.dto.CityGetDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -36,6 +33,7 @@ public class TourService {
     private final RestaurantRepository restaurantRepository;
     private final ShoppingRepository shoppingRepository;
     private final TourRepository tourRepository;
+    private final PlaceRepository placeRepository;
     private final S3Upload s3Upload;
 
 
@@ -254,5 +252,23 @@ public class TourService {
                     .build());
         }
         return locationDetail;
+    }
+
+    public String AddPlaceToSchedule(ScheduleAddPlaceDto scheduleAddPlaceDto, Principal principal) {
+
+        //Validation
+        Schedule schedule = scheduleRepository.findByScheduleId(scheduleAddPlaceDto.getScheduleId()).orElseThrow();
+        Location location = locationRepository.findByLocationId(scheduleAddPlaceDto.getLocationId()).orElseThrow();
+
+        //Place add
+        Place place = Place.builder()
+                .date(scheduleAddPlaceDto.getDate())
+                .time(scheduleAddPlaceDto.getTime())
+                .location(location)
+                .schedule(schedule)
+                .build();
+
+        placeRepository.save(place);
+        return "해당 스케쥴에 장소를 추가하였습니다";
     }
 }
