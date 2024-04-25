@@ -35,7 +35,7 @@ public class Event {
     private LocalDateTime modifiedAt;
 
     @Column
-    private int type;
+    private EventType type;
 
     @PrePersist
     public void prePersist() {

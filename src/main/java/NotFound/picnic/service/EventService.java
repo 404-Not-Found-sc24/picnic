@@ -34,8 +34,18 @@ public class EventService {
     private final S3Upload s3Upload;
 
     public List<EventGetDto> GetEvents(int Type) throws UnsupportedEncodingException{
+        EventType eventType;
+        if (Type ==1){
+            eventType = EventType.ANNOUNCEMENT;
+        }
+        else if (Type == 2){
+            eventType = EventType.PROMOTION;
+        }
+        else {
+            eventType=EventType.EVENT;
+        }
         
-        List<Event> events =eventRepository.findAllByType(Type);
+        List<Event> events =eventRepository.findAllByType(eventType);
 
         events.sort(Comparator.comparing(Event::getCreateAt).reversed());
         
@@ -52,7 +62,17 @@ public class EventService {
     }
 
     public EventDetailGetDto GetEventDetail(Long eventId,int Type){
-        List<Event> events =eventRepository.findAllByType(Type);
+        EventType eventType;
+        if (Type ==1){
+            eventType = EventType.ANNOUNCEMENT;
+        }
+        else if (Type == 2){
+            eventType = EventType.PROMOTION;
+        }
+        else {
+            eventType=EventType.EVENT;
+        }
+        List<Event> events =eventRepository.findAllByType(eventType);
         Event event = events.stream()
         .filter(e -> e.getEventId().equals(eventId))
         .findFirst()
