@@ -98,41 +98,4 @@ public class EventService {
        
     }
 
-
-    /* 
-
-    public String createEvent(EventCreateDto eventCreateDto, Principal princial){
-
-        Event event = Event.builder()
-        .title(eventCreateDto.getTitle())
-        .content(eventCreateDto.getContent())
-        .build();
-
-        eventRepository.save(event);
-
-        List<MultipartFile> images = eventCreateDto.getImages();
-        if (images != null) {
-            images.forEach(image -> {
-                try {
-                    String url = s3Upload.uploadFiles(image, "event");
-                    EventImage img = EventImage.builder()
-                            .event(event)
-                            .imageUrl(url)
-                            .build();
-
-                    eventImageRepository.save(img);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            });
-
-        }
-
-        return "hi";
-
-    }
-    */
-    
-
 }
