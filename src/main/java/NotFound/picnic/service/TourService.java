@@ -77,38 +77,7 @@ public class TourService {
 
             Optional<List<Schedule>> schedules = scheduleRepository.findDistinctSchedulesByLocations(locationIds);
 
-            if (schedules.isPresent()) {
-                return schedules.get().stream()
-                        .map(schedule -> {
-                            Member member = memberRepository.findById(schedule.getMember().getMemberId()).orElseThrow();
-
-                            Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
-                            String imageUrl = null;
-
-                            if (diaries.isPresent()) {
-                                Optional<String> imageUrlOptional = diaries.get().stream()
-                                        .map(imageRepository::findTopByDiary)
-                                        .filter(Optional::isPresent)
-                                        .map(Optional::get)
-                                        .map(Image::getImageUrl)
-                                        .findFirst();
-
-                                if (imageUrlOptional.isPresent())
-                                    imageUrl = imageUrlOptional.get();
-                            }
-
-
-                            return ScheduleGetDto.builder()
-                                    .scheduleId(schedule.getScheduleId())
-                                    .name(schedule.getName())
-                                    .startDate(schedule.getStartDate())
-                                    .endDate(schedule.getEndDate())
-                                    .username(member.getName())
-                                    .imageUrl(imageUrl)
-                                    .build();
-                        })
-                        .toList();
-            }
+            return FindSchedules(schedules);
         }
         return null;
     }
@@ -280,7 +249,7 @@ public class TourService {
         return "해당 스케쥴에 장소를 추가하였습니다";
     }
 
-    public List<DiaryGetDto> getDiaries (Long locationId) {
+    public List<DiaryGetDto> GetDiaries (Long locationId) {
         Optional<List<Place>> placeList = placeRepository.findAllByLocation_LocationId(locationId);
 
         return placeList.map(places -> places.stream()
@@ -306,5 +275,44 @@ public class TourService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
         ).orElse(Collections.emptyList());
+    }
+
+    public List<ScheduleGetDto> GetSchedulesByLocationId(Long locationId) {
+        Optional<List<Schedule>> schedules = scheduleRepository.findDistinctSchedulesByLocation(locationId);
+
+        return FindSchedules(schedules);
+    }
+
+    private List<ScheduleGetDto> FindSchedules(Optional<List<Schedule>> schedules) {
+        return schedules.map(scheduleList -> scheduleList.stream()
+                .map(schedule -> {
+                    Member member = memberRepository.findById(schedule.getMember().getMemberId()).orElseThrow();
+
+                    Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
+                    String imageUrl = null;
+
+                    if (diaries.isPresent()) {
+                        Optional<String> imageUrlOptional = diaries.get().stream()
+                                .map(imageRepository::findTopByDiary)
+                                .filter(Optional::isPresent)
+                                .map(Optional::get)
+                                .map(Image::getImageUrl)
+                                .findFirst();
+
+                        if (imageUrlOptional.isPresent())
+                            imageUrl = imageUrlOptional.get();
+                    }
+
+
+                    return ScheduleGetDto.builder()
+                            .scheduleId(schedule.getScheduleId())
+                            .name(schedule.getName())
+                            .startDate(schedule.getStartDate())
+                            .endDate(schedule.getEndDate())
+                            .username(member.getName())
+                            .imageUrl(imageUrl)
+                            .build();
+                })
+                .toList()).orElse(null);
     }
 }
