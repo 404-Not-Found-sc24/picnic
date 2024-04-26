@@ -60,15 +60,4 @@ public class EventController {
     }
     
 
-    /* 
-
-    @PreAuthorize("isAuthenticated")
-    @PostMapping()
-    public ResponseEntity<String> creatEvent(@RequestBody EventCreateDto eventCreateDto, Principal principal){
-
-        return ResponseEntity.ok().body("hi");
-    }
-    */
-
-
 }
