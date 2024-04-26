@@ -11,9 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -280,5 +278,33 @@ public class TourService {
 
         placeRepository.save(place);
         return "해당 스케쥴에 장소를 추가하였습니다";
+    }
+
+    public List<DiaryGetDto> getDiaries (Long locationId) {
+        Optional<List<Place>> placeList = placeRepository.findAllByLocation_LocationId(locationId);
+
+        return placeList.map(places -> places.stream()
+                .map(place -> {
+                    Schedule schedule = scheduleRepository.findById(place.getSchedule().getScheduleId()).orElseThrow();
+                    Optional<Diary> diary = diaryRepository.findByPlace(place);
+                    if (diary.isPresent()) {
+                        Optional<Image> image = imageRepository.findTopByDiary(diary.get());
+                        String imageUrl = image.map(Image::getImageUrl).orElse(null);
+
+                        return DiaryGetDto.builder()
+                                .diaryId(diary.get().getDiaryId())
+                                .placeId(place.getPlaceId())
+                                .scheduleName(schedule.getName())
+                                .date(place.getDate())
+                                .content(diary.get().getContent())
+                                .imageUrl(imageUrl)
+                                .build();
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        ).orElse(Collections.emptyList());
     }
 }
