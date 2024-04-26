@@ -31,7 +31,6 @@ public class TourController {
 
     }
 
-
     @GetMapping("/schedules")
     public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword) {
         List<ScheduleGetDto> schedulesGetDtoList = tourService.GetSchedules(city, keyword);
@@ -56,6 +55,12 @@ public class TourController {
     public ResponseEntity<String> addPlaceToSchedule(@RequestBody ScheduleAddPlaceDto scheduleAddPlaceDto, Principal principal){
         String response = tourService.AddPlaceToSchedule(scheduleAddPlaceDto, principal);
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("/diaries/{locationId}")
+    public ResponseEntity<List<DiaryGetDto>> getDiaries(@PathVariable(name="locationId") Long locationId) {
+        List<DiaryGetDto> diaryGetDtoList = tourService.getDiaries(locationId);
+        return ResponseEntity.ok().body(diaryGetDtoList);
     }
 
 }
