@@ -139,13 +139,12 @@ public class ScheduleService {
                         () -> {} // 값이 없는 경우 아무 작업도 수행하지 않음
                 );
 
-
                 // SchedulePlaceDiaryGetDto 생성
                 return builder.build();
             });
         }).collect(Collectors.toList());
-
     }
+
 
     // 여행 일기 생성
     public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
