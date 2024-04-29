@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
@@ -33,6 +35,8 @@ public class TourService {
     private final ShoppingRepository shoppingRepository;
     private final TourRepository tourRepository;
     private final PlaceRepository placeRepository;
+    private final ApprovalRepository approvalRepository;
+    private final ApprovalImageRepository approvalImageRepository;
     private final S3Upload s3Upload;
 
 
@@ -82,7 +86,7 @@ public class TourService {
         return null;
     }
 
-    public List<CityGetDto> GetCities(){
+    public List<CityGetDto> GetCities() {
         List<City> cities = cityRepository.findAll();
         return cities.stream()
                 .map(city -> CityGetDto.builder()
@@ -92,7 +96,7 @@ public class TourService {
                 .collect(Collectors.toList());
     }
 
-    public String DuplicateSchedule(Long scheduleId,ScheduleDuplicateDto scheduleDuplicateDto, Principal principal){
+    public String DuplicateSchedule(Long scheduleId, ScheduleDuplicateDto scheduleDuplicateDto, Principal principal) {
         // User validate
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
@@ -116,7 +120,7 @@ public class TourService {
         //Duplicate place
         List<Place> places = placeRepository.findBySchedule(scheduleOld);
 
-        for(Place place : places){
+        for (Place place : places) {
             Place place_new = Place.builder()
                     .date(place.getDate())
                     .time(place.getTime())
@@ -128,7 +132,7 @@ public class TourService {
         return "일정 복제 완료";
     }
 
-    public LocationDetailDto GetLocationDetail(Long locationId){
+    public LocationDetailDto GetLocationDetail(Long locationId) {
 
         //location check
         Location location = locationRepository.findByLocationId(locationId).orElseThrow();
@@ -145,7 +149,7 @@ public class TourService {
                 .build();
 
         //Accommodation
-        if(division.contains("숙박")){
+        if (division.contains("숙박")) {
             Accommodation accommodation = accommodationRepository.findByLocation_LocationId(locationId);
             locationDetail.setAccommodation(LocationDetailDto.Accommodation.builder()
                     .checkIn(accommodation.getCheckIn())
@@ -249,7 +253,7 @@ public class TourService {
         return "해당 스케쥴에 장소를 추가하였습니다";
     }
 
-    public List<DiaryGetDto> GetDiaries (Long locationId) {
+    public List<DiaryGetDto> GetDiaries(Long locationId) {
         Optional<List<Place>> placeList = placeRepository.findAllByLocation_LocationId(locationId);
 
         return placeList.map(places -> places.stream()
@@ -314,5 +318,46 @@ public class TourService {
                             .build();
                 })
                 .toList()).orElse(null);
+    }
+
+    public String AddNewLocation(NewLocationDto newLocationDto, Principal principal) {
+        Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
+        if (optionalMember.isEmpty()) {
+            throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
+        }
+        Member member = optionalMember.get();
+
+        Approval approval = Approval.builder()
+                .member(member)
+                .name(newLocationDto.getName())
+                .address(newLocationDto.getAddress())
+                .detail(newLocationDto.getDetail())
+                .latitude(newLocationDto.getLatitude())
+                .longitude(newLocationDto.getLongitude())
+                .division(newLocationDto.getDivision())
+                .phone(newLocationDto.getPhone())
+                .content(newLocationDto.getContent())
+                .build();
+
+        Approval apply_approval = approvalRepository.save(approval);
+
+        List<MultipartFile> images = newLocationDto.getImages();
+        if (images != null) {
+            images.forEach(image -> {
+                try {
+                    String url = s3Upload.uploadFiles(image, "new-location");
+                    ApprovalImage approvalImage = ApprovalImage.builder()
+                            .imageUrl(url)
+                            .approval(apply_approval)
+                            .build();
+
+                    approvalImageRepository.save(approvalImage);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            });
+        }
+        return "새로운 장소 approval 추가 완료";
     }
 }
