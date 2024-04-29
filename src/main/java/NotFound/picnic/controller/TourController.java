@@ -12,6 +12,7 @@ import java.security.Principal;
 import java.util.List;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,5 +68,12 @@ public class TourController {
     public ResponseEntity<List<ScheduleGetDto>> getSchedulesByLocationId(@PathVariable(name="locationId") Long locationId) {
         List<ScheduleGetDto> scheduleGetDtoList = tourService.GetSchedulesByLocationId(locationId);
         return ResponseEntity.ok().body(scheduleGetDtoList);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/new-location")
+    public ResponseEntity<String> addNewLocation(NewLocationDto newLocationDto, Principal principal){
+        String response = tourService.AddNewLocation(newLocationDto, principal);
+        return ResponseEntity.ok().body(response);
     }
 }
