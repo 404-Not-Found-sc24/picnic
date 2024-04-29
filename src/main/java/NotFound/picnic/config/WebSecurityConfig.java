@@ -64,6 +64,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         // 권한 규칙 작성
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(AUTH_WHITELIST).permitAll()
+                .requestMatchers(HttpMethod.GET,"/tour/*").permitAll()
                 //@PreAuthorization을 사용하는 경우 모든 경로에 대한 인증 처리는 permit
                 .anyRequest().permitAll()
         );
