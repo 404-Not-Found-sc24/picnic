@@ -45,6 +45,6 @@ public class Member {
 
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
-    private List<Approval> eventList;
+    private List<Event> eventList;
 
 }

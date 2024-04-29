@@ -1,24 +1,26 @@
 package NotFound.picnic.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class Image {
+public class ApprovalImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long imageId;
+    private Long approvalImgId;
 
     @Column
     private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn (name = "diary_id")
+    @JoinColumn (name = "approval_id")
     @ToString.Exclude
-    private Diary diary;
+    private Approval approval;
+
 }

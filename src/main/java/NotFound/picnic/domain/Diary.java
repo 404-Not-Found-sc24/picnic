@@ -14,7 +14,7 @@ import java.util.List;
 public class Diary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long recordId;
+    private Long diaryId;
 
     @Column
     private String title;
@@ -25,7 +25,7 @@ public class Diary {
     @Column
     private String weather;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn (name = "place_id")
     @ToString.Exclude
     private Place place;

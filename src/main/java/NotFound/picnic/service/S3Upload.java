@@ -83,7 +83,7 @@ public class S3Upload {
 	}
 
 	// 이미지 주소 반환
-	private String getImageUrl (String fileName) {
+	public String getImageUrl (String fileName) {
 			return amazonS3Client.getUrl(bucket, fileName).toString();
 	}
 }
