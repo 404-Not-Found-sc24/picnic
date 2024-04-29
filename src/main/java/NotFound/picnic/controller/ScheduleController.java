@@ -35,7 +35,7 @@ public class ScheduleController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/record/{placeId}")
+    @PostMapping("/diary/{placeId}")
     public ResponseEntity<String> createDiary(@PathVariable(name="placeId") Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
         String message = scheduleService.createDiary(placeId, diaryCreateDto);
         return ResponseEntity.ok().body(message);
