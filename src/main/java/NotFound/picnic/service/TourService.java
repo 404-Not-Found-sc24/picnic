@@ -254,6 +254,7 @@ public class TourService {
     }
 
     public List<DiaryGetDto> GetDiaries(Long locationId) {
+      
         Optional<List<Place>> placeList = placeRepository.findAllByLocation_LocationId(locationId);
 
         return placeList.map(places -> places.stream()
@@ -360,4 +361,5 @@ public class TourService {
         }
         return "새로운 장소 approval 추가 완료";
     }
+
 }
