@@ -21,8 +21,8 @@ public class TourController {
     private final TourService tourService;
 
     @GetMapping("/locations")
-    public ResponseEntity<List<LocationGetDto>> getLocations(@RequestParam(name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword) throws UnsupportedEncodingException {
-        List<LocationGetDto> locationGetDtoList = tourService.GetLocations(city, keyword);
+    public ResponseEntity<List<LocationGetDto>> getLocations(@RequestParam(name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "", name="lastName") String lastName) throws UnsupportedEncodingException {
+        List<LocationGetDto> locationGetDtoList = tourService.GetLocations(city, keyword, lastName);
         return ResponseEntity.ok().body(locationGetDtoList);
     }
     @GetMapping("/city")
@@ -33,8 +33,8 @@ public class TourController {
     }
 
     @GetMapping("/schedules")
-    public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword) {
-        List<ScheduleGetDto> schedulesGetDtoList = tourService.GetSchedules(city, keyword);
+    public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "", name="lastName") String lastName) {
+        List<ScheduleGetDto> schedulesGetDtoList = tourService.GetSchedules(city, keyword, lastName);
         return ResponseEntity.ok().body(schedulesGetDtoList);
     }
 
