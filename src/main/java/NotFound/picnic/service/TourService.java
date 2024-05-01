@@ -40,15 +40,9 @@ public class TourService {
     private final S3Upload s3Upload;
 
 
-    public List<LocationGetDto> GetLocations(String city, String keyword) throws UnsupportedEncodingException {
+    public List<LocationGetDto> GetLocations(String city, String keyword, String lastName) throws UnsupportedEncodingException {
 
-        Optional<List<Location>> locations;
-
-
-        if (keyword == null)
-            locations = locationRepository.findAllByCity(city);
-        else
-            locations = locationRepository.findByCityAndKeyword(city, keyword);
+        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastName);
 
         return locations.map(locationList -> locationList.stream()
                 .map(location -> {
@@ -70,10 +64,9 @@ public class TourService {
                 .toList()).orElse(null);
     }
 
-    public List<ScheduleGetDto> GetSchedules(String city, String keyword) {
-        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword);
+    public List<ScheduleGetDto> GetSchedules(String city, String keyword, String lastName) {
+        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastName);
         if (locations.isPresent()) {
-            List<Location> locationList = locations.get();
 
             List<Long> locationIds = locations.get().stream()
                     .map(Location::getLocationId)

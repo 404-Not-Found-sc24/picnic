@@ -19,7 +19,7 @@ public interface LocationRepository  extends JpaRepository<Location, Long> {
 
     Optional<List<Location>> findAllByCity(String city);
 
-    @Query("select l from Location l where l.city = :city and (l.name like %:keyword% or l.address like %:keyword%)")
-    Optional<List<Location>> findByCityAndKeyword(@Param("city") String city, @Param("keyword") String keyword);
+    @Query("select l from Location l where l.city = :city and (l.name like %:keyword% or l.address like %:keyword%) and l.name > :lastName order by l.name, l.locationId desc limit 20")
+    Optional<List<Location>> findByCityAndKeyword(@Param("city") String city, @Param("keyword") String keyword, @Param("lastName") String lastName);
 
 }
