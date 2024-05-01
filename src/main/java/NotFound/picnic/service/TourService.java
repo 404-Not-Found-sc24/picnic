@@ -6,6 +6,8 @@ import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,9 +42,9 @@ public class TourService {
     private final S3Upload s3Upload;
 
 
-    public List<LocationGetDto> GetLocations(String city, String keyword, String lastName) throws UnsupportedEncodingException {
+    public List<LocationGetDto> GetLocations(String city, String keyword, int lastIdx) throws UnsupportedEncodingException {
 
-        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastName);
+        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
 
         return locations.map(locationList -> locationList.stream()
                 .map(location -> {
@@ -64,8 +66,8 @@ public class TourService {
                 .toList()).orElse(null);
     }
 
-    public List<ScheduleGetDto> GetSchedules(String city, String keyword, String lastName) {
-        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastName);
+    public List<ScheduleGetDto> GetSchedules(String city, String keyword, int lastIdx) {
+        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
         if (locations.isPresent()) {
 
             List<Long> locationIds = locations.get().stream()

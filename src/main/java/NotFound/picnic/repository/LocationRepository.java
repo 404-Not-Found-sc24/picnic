@@ -19,7 +19,7 @@ public interface LocationRepository  extends JpaRepository<Location, Long> {
 
     Optional<List<Location>> findAllByCity(String city);
 
-    @Query("select l from Location l where l.city = :city and (l.name like %:keyword% or l.address like %:keyword%) and l.name > :lastName order by l.name, l.locationId desc limit 20")
-    Optional<List<Location>> findByCityAndKeyword(@Param("city") String city, @Param("keyword") String keyword, @Param("lastName") String lastName);
+    @Query(value="select * from Location where city = :city and (name like concat('%',:keyword,'%') or address like concat('%',:keyword,'%')) order by name, location_id desc limit 20 offset :lastIdx", nativeQuery = true)
+    Optional<List<Location>> findByCityAndKeyword(@Param("city") String city, @Param("keyword") String keyword, @Param("lastIdx") int lastIdx);
 
 }
