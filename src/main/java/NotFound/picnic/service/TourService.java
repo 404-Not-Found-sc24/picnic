@@ -145,6 +145,7 @@ public class TourService {
         LocationDetailDto locationDetail = LocationDetailDto.builder()
                 .name(location.getName())
                 .address(location.getAddress())
+                .detail(location.getDetail())
                 .latitude(location.getLatitude())
                 .longitude(location.getLongitude())
                 .division(location.getDivision())
