@@ -21,14 +21,14 @@ public class TourController {
     private final TourService tourService;
 
     @GetMapping("/locations")
-    public ResponseEntity<List<LocationGetDto>> getLocations(@RequestParam(name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "0", name="lastIdx") int lastIdx) throws UnsupportedEncodingException {
+    public ResponseEntity<List<LocationGetDto>> getLocations(@RequestParam(required = false, defaultValue = "", name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "0", name="lastIdx") int lastIdx) throws UnsupportedEncodingException {
         List<LocationGetDto> locationGetDtoList = tourService.GetLocations(city, keyword, lastIdx);
         return ResponseEntity.ok().body(locationGetDtoList);
     }
   
     @GetMapping("/city")
-    public ResponseEntity<List<CityGetDto>> getCities(){
-        List <CityGetDto> CityGetDtoList = tourService.GetCities();
+    public ResponseEntity<List<CityGetDto>> getCities(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword){
+        List <CityGetDto> CityGetDtoList = tourService.GetCities(keyword);
         return ResponseEntity.ok().body(CityGetDtoList);
 
     }
