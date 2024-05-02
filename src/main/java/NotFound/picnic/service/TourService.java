@@ -83,8 +83,8 @@ public class TourService {
         return null;
     }
 
-    public List<CityGetDto> GetCities() {
-        List<City> cities = cityRepository.findAll();
+    public List<CityGetDto> GetCities(String keyword) {
+        List<City> cities = cityRepository.findAllByNameContaining(keyword);
         return cities.stream()
                 .map(city -> CityGetDto.builder()
                         .cityName(city.getName())
