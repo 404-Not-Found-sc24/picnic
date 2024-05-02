@@ -41,7 +41,7 @@ public class AuthController {
         return authService.join(signUpDto);
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/test")
     public String test(@RequestPart(required = false) MultipartFile file) {
         if (file.isEmpty()) {
