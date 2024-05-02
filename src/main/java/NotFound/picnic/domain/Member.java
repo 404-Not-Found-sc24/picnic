@@ -34,7 +34,8 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'USER'")
-    private Role role;
+    @Builder.Default
+    private Role role = Role.USER;
 
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
