@@ -47,7 +47,7 @@ public class TourService {
         return locations.map(locationList -> locationList.stream()
                 .map(location -> {
 
-                    Optional<LocationImage> image = locationImageRepostiory.findTopByLocation(location);
+                    Optional<LocationImage> image = locationImageRepository.findTopByLocation(location);
                     String imageUrl = null;
                     if (image.isPresent())
                         imageUrl = image.get().getImageUrl();
