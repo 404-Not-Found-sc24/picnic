@@ -6,6 +6,10 @@ import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,28 +44,34 @@ public class TourService {
     private final S3Upload s3Upload;
 
 
-    public List<LocationGetDto> GetLocations(String city, String keyword, int lastIdx) throws UnsupportedEncodingException {
+    public ResponseEntity<?> GetLocations(String city, String keyword, int lastIdx) throws UnsupportedEncodingException {
 
-        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
-
-        return locations.map(locationList -> locationList.stream()
-                .map(location -> {
-
-                    Optional<LocationImage> image = locationImageRepository.findTopByLocation(location);
-                    String imageUrl = null;
-                    if (image.isPresent())
-                        imageUrl = image.get().getImageUrl();
-
-                    return LocationGetDto.builder()
-                            .locationId(location.getLocationId())
-                            .name(location.getName())
-                            .address(location.getAddress())
-                            .latitude(location.getLatitude())
-                            .longitude(location.getLongitude())
-                            .imageUrl(imageUrl)
-                            .build();
-                })
-                .toList()).orElse(null);
+        try {
+            Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
+            return locations.map(locationList -> ResponseEntity.ok(locationList.stream()
+                    .map(location -> {
+                        Optional<LocationImage> image = locationImageRepository.findTopByLocation(location);
+                        String imageUrl = null;
+                        if (image.isPresent()) {
+                            imageUrl = image.get().getImageUrl();
+                        }
+                        return LocationGetDto.builder()
+                                .locationId(location.getLocationId())
+                                .name(location.getName())
+                                .address(location.getAddress())
+                                .latitude(location.getLatitude())
+                                .longitude(location.getLongitude())
+                                .imageUrl(imageUrl)
+                                .build();
+                    })
+                    .toList())).orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            // 예외 발생 시 로그에 기록
+            Logger logger = LoggerFactory.getLogger(this.getClass());
+            logger.error("Error occurred while fetching locations: " + e.getMessage(), e);
+            // 클라이언트로 예외 메시지 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch search results: " + e.getMessage());
+        }
     }
 
     public List<ScheduleGetDto> GetSchedules(String city, String keyword, int lastIdx) {
@@ -135,6 +145,7 @@ public class TourService {
         LocationDetailDto locationDetail = LocationDetailDto.builder()
                 .name(location.getName())
                 .address(location.getAddress())
+                .detail(location.getDetail())
                 .latitude(location.getLatitude())
                 .longitude(location.getLongitude())
                 .division(location.getDivision())
