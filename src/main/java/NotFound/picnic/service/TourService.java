@@ -6,8 +6,6 @@ import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TourService {
     private final LocationRepository locationRepository;
-    private final LocationImageRepostiory locationImageRepostiory;
+    private final LocationImageRepostiory locationImageRepository;
     private final ScheduleRepository scheduleRepository;
     private final MemberRepository memberRepository;
     private final DiaryRepository diaryRepository;

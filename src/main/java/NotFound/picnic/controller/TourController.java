@@ -25,6 +25,7 @@ public class TourController {
         List<LocationGetDto> locationGetDtoList = tourService.GetLocations(city, keyword, lastIdx);
         return ResponseEntity.ok().body(locationGetDtoList);
     }
+  
     @GetMapping("/city")
     public ResponseEntity<List<CityGetDto>> getCities(){
         List <CityGetDto> CityGetDtoList = tourService.GetCities();
