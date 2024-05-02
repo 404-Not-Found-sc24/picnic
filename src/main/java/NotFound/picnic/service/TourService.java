@@ -45,8 +45,13 @@ public class TourService {
 
 
     public List<LocationGetDto> GetLocations(String city, String keyword, int lastIdx) throws UnsupportedEncodingException {
-
-        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
+        Optional<List<Location>> locations = null;
+        if (city != null) {
+            locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
+        }
+        else {
+            locations = locationRepository.findByKeyword(keyword, lastIdx);
+        }
 
         return locations.map(locationList -> locationList.stream()
                 .map(location -> {
