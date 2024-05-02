@@ -44,34 +44,28 @@ public class TourService {
     private final S3Upload s3Upload;
 
 
-    public ResponseEntity<?> GetLocations(String city, String keyword, int lastIdx) throws UnsupportedEncodingException {
+    public List<LocationGetDto> GetLocations(String city, String keyword, int lastIdx) throws UnsupportedEncodingException {
 
-        try {
-            Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
-            return locations.map(locationList -> ResponseEntity.ok(locationList.stream()
-                    .map(location -> {
-                        Optional<LocationImage> image = locationImageRepository.findTopByLocation(location);
-                        String imageUrl = null;
-                        if (image.isPresent()) {
-                            imageUrl = image.get().getImageUrl();
-                        }
-                        return LocationGetDto.builder()
-                                .locationId(location.getLocationId())
-                                .name(location.getName())
-                                .address(location.getAddress())
-                                .latitude(location.getLatitude())
-                                .longitude(location.getLongitude())
-                                .imageUrl(imageUrl)
-                                .build();
-                    })
-                    .toList())).orElse(ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            // 예외 발생 시 로그에 기록
-            Logger logger = LoggerFactory.getLogger(this.getClass());
-            logger.error("Error occurred while fetching locations: " + e.getMessage(), e);
-            // 클라이언트로 예외 메시지 반환
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch search results: " + e.getMessage());
-        }
+        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
+
+        return locations.map(locationList -> locationList.stream()
+                .map(location -> {
+
+                    Optional<LocationImage> image = locationImageRepository.findTopByLocation(location);
+                    String imageUrl = null;
+                    if (image.isPresent())
+                        imageUrl = image.get().getImageUrl();
+
+                    return LocationGetDto.builder()
+                            .locationId(location.getLocationId())
+                            .name(location.getName())
+                            .address(location.getAddress())
+                            .latitude(location.getLatitude())
+                            .longitude(location.getLongitude())
+                            .imageUrl(imageUrl)
+                            .build();
+                })
+                .toList()).orElse(null);
     }
 
     public List<ScheduleGetDto> GetSchedules(String city, String keyword, int lastIdx) {
