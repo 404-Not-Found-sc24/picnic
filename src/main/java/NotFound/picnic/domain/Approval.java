@@ -1,5 +1,6 @@
 package NotFound.picnic.domain;
 
+import NotFound.picnic.enums.State;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,8 +17,9 @@ public class Approval {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long approvalId;
 
-    @Column
-    private int state;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'APPLIED'")
+    private State state;
 
     @Column
     private String date;
