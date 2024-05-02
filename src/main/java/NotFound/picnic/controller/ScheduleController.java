@@ -1,9 +1,6 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.PlaceCreateDto;
-import NotFound.picnic.dto.DiaryCreateDto;
-import NotFound.picnic.dto.ScheduleCreateDto;
-import NotFound.picnic.dto.SchedulePlaceDiaryGetDto;
+import NotFound.picnic.dto.*;
 import NotFound.picnic.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,10 +32,22 @@ public class ScheduleController {
         return ResponseEntity.ok().body(message);
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/diary/{placeId}")
+    public ResponseEntity<String> createDiary(@PathVariable(name="placeId") Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
+        String message = scheduleService.createDiary(placeId, diaryCreateDto);
+        return ResponseEntity.ok().body(message);
+    }
 
     @GetMapping("/schedules/{scheduleId}")
     public ResponseEntity<?> getSchedulePlaceDiary(@PathVariable(name="scheduleId") Long scheduleId, Principal principal){
         List<SchedulePlaceDiaryGetDto> schedulePlaceDiaryList = scheduleService.getSchedulePlaceDiary(scheduleId, principal);
         return ResponseEntity.ok().body(schedulePlaceDiaryList);
+    }
+
+    @GetMapping("/places/{scheduleId}")
+    public ResponseEntity<List<List<PlaceGetDto>>> getPlaces(@PathVariable(name="scheduleId") Long scheduleId) {
+        List<List<PlaceGetDto>> placeList = scheduleService.getPlaces(scheduleId);
+        return ResponseEntity.ok().body(placeList);
     }
 }
