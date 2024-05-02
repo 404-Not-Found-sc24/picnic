@@ -36,8 +36,10 @@ jobs:
     - name: Logback add
       run: touch ./src/main/resources logback-spring.xml
 
-    - name: logback properties add
-      run: echo "${{ secrets.LOGBACK_CONFIG}}" > ./src/main/resources/logback-spring.xml
+    - name: Logback properties add
+      run: |
+        echo '${{ secrets.LOGBACK_CONFIG }}' > ./src/main/resources/logback-spring.xml
+
 
     - name: Build with Gradle Wrapper
       run: ./gradlew build
