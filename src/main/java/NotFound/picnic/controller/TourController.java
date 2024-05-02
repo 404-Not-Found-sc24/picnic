@@ -27,8 +27,8 @@ public class TourController {
     }
   
     @GetMapping("/city")
-    public ResponseEntity<List<CityGetDto>> getCities(){
-        List <CityGetDto> CityGetDtoList = tourService.GetCities();
+    public ResponseEntity<List<CityGetDto>> getCities(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword){
+        List <CityGetDto> CityGetDtoList = tourService.GetCities(keyword);
         return ResponseEntity.ok().body(CityGetDtoList);
 
     }
