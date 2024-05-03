@@ -34,6 +34,7 @@ public class Event {
     @LastModifiedDate
     private LocalDateTime modifiedAt;
 
+    @Enumerated(EnumType.STRING)
     @Column
     private EventType type;
 
