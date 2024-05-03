@@ -21,6 +21,5 @@ public interface ScheduleRepository  extends JpaRepository<Schedule, Long> {
 
     Optional<Schedule> findByScheduleId(Long scheduleId);
 
-    @Query("select s from Schedule s where s.location like '%:keyword%'")
     List<Schedule> findAllByLocationContaining(String keyword);
 }
