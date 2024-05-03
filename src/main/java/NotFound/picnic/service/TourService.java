@@ -92,8 +92,13 @@ public class TourService {
         return null;
     }
 
-    public List<CityGetDto> GetCities(String keyword) {
-        List<City> cities = cityRepository.findAllByNameContaining(keyword);
+    public List<CityGetDto> GetCities(String keyword, String keyword2) {
+        List<City> cities = null;
+        if (keyword2 == null)
+            cities = cityRepository.findAllByNameContaining(keyword);
+        else
+            cities = cityRepository.findAllByNameContainingOrNameContaining(keyword, keyword2);
+
         return cities.stream()
                 .map(city -> CityGetDto.builder()
                         .cityName(city.getName())
