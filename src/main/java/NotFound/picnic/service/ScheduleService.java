@@ -1,13 +1,11 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
-import NotFound.picnic.dto.PlaceCreateDto;
-import NotFound.picnic.dto.DiaryCreateDto;
-import NotFound.picnic.dto.ScheduleCreateDto;
-import NotFound.picnic.dto.SchedulePlaceDiaryGetDto;
+import NotFound.picnic.dto.*;
 import NotFound.picnic.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,6 +29,7 @@ public class ScheduleService {
     private final S3Upload s3Upload;
     private final ImageRepository imageRepository;
     private final DiaryRepository diaryRepository;
+    private final LocationImageRepostiory locationImageRepostiory;
 
     // 여행 일정 생성
     public String createSchedule(ScheduleCreateDto scheduleCreateDto, Principal principal) {
@@ -112,6 +112,11 @@ public class ScheduleService {
             // 각 place에 속한 diary 조회
             List<Diary> diaryList = diaryRepository.findAllByPlace_PlaceId(place.getPlaceId());
 
+            // diary가 없으면 빈 Diary 객체 생성
+            if (diaryList.isEmpty()) {
+                diaryList.add(new Diary()); // 빈 Diary 객체 추가
+            }
+
             // Stream<Diary>로 변환
             return diaryList.stream().map(diary -> {
                 // SchedulePlaceDiaryGetDto 빌더 생성
@@ -134,13 +139,12 @@ public class ScheduleService {
                         () -> {} // 값이 없는 경우 아무 작업도 수행하지 않음
                 );
 
-
                 // SchedulePlaceDiaryGetDto 생성
                 return builder.build();
             });
         }).collect(Collectors.toList());
-
     }
+
 
     // 여행 일기 생성
     public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
@@ -179,6 +183,49 @@ public class ScheduleService {
         }
 
         return "일기 저장 완료";
+    }
+
+    // 여행 일정 보기 in MyPage
+    public List<List<PlaceGetDto>> getPlaces (Long scheduleId) {
+
+        Optional<List<Place>> placeList = placeRepository.findAllBySchedule_ScheduleId(scheduleId);
+
+        List<List<PlaceGetDto>> placeGetDtoList = new ArrayList<>();
+
+        if (placeList.isPresent()) {
+            List<String> uniqueDates = placeList.get().stream()
+                    .map(Place::getDate)
+                    .distinct()
+                    .sorted()
+                    .toList();
+
+            for (String date : uniqueDates) {
+                List<PlaceGetDto> placesWithSameDate = placeList.get().stream()
+                        .filter(place -> place.getDate().equals(date))
+                        .map(place -> {
+                            Location location = place.getLocation();
+                            Optional<LocationImage> image = locationImageRepostiory.findTopByLocation(location);
+                            String imageUrl = null;
+                            if (image.isPresent()) imageUrl = image.get().getImageUrl();
+                            return PlaceGetDto.builder()
+                                    .placeId(place.getPlaceId())
+                                    .locationId(location.getLocationId())
+                                    .locationName(location.getName())
+                                    .date(place.getDate())
+                                    .time(place.getTime())
+                                    .address(location.getAddress())
+                                    .latitude(location.getLatitude())
+                                    .longitude(location.getLongitude())
+                                    .imageUrl(imageUrl)
+                                    .build();
+                        })
+                        .sorted(Comparator.comparing(PlaceGetDto::getTime))
+                        .toList();
+                placeGetDtoList.add(placesWithSameDate);
+            }
+        }
+
+        return placeGetDtoList;
     }
 
 }

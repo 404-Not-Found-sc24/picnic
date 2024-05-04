@@ -60,7 +60,6 @@ public class EventController {
     }
     
 
-    /* 
 
     @PreAuthorize("isAuthenticated")
     @PostMapping()
@@ -68,7 +67,8 @@ public class EventController {
 
         return ResponseEntity.ok().body("hi");
     }
-    */
+    
+
 
 
 }

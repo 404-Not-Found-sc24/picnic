@@ -1,20 +1,15 @@
 package NotFound.picnic.service;
 
-import NotFound.picnic.domain.Event;
-import NotFound.picnic.domain.EventImage;
-import NotFound.picnic.repository.EventRepository;
-import NotFound.picnic.repository.EventImageRepository;
-import NotFound.picnic.dto.EventGetDto;
-import NotFound.picnic.dto.EventDetailGetDto;
-import NotFound.picnic.dto.EventCreateDto;
-import NotFound.picnic.dto.EventImageDto;
+import NotFound.picnic.domain.*;
+import NotFound.picnic.repository.*;
+import NotFound.picnic.dto.*;
 import NotFound.picnic.enums.EventType;
-import NotFound.picnic.domain.Member;
-import NotFound.picnic.repository.MemberRepository;
 
 import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -31,6 +26,8 @@ import java.security.Principal;
 public class EventService {
     private final EventRepository eventRepository;
     private final EventImageRepository eventImageRepository;
+    private final LocationRepository locationRepository;
+    private final MemberRepository memberRepository;
     private final S3Upload s3Upload;
 
     public List<EventGetDto> GetEvents(int Type) throws UnsupportedEncodingException{
@@ -99,16 +96,36 @@ public class EventService {
     }
 
 
-    /* 
 
-    public String createEvent(EventCreateDto eventCreateDto, Principal princial){
+    public String createEvent(EventCreateDto eventCreateDto, Principal principal){
+
+        Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
+
+        if (optionalMember.isEmpty()) {
+            throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
+        }
+        Member member = optionalMember.get();
+
+        EventType eventType = EventType.valueOf(eventCreateDto.getEventType());
+        Optional<Location> optionalLocation = locationRepository.findById(eventCreateDto.getLocationId());
+        Location location = optionalLocation.get();
+        // type이 공지일 경우와 location을 못 찾았을 경우의 예외처리
+        // git pull 후 member enum 확인
+
+
+
 
         Event event = Event.builder()
         .title(eventCreateDto.getTitle())
         .content(eventCreateDto.getContent())
+        .member(member)
+        .location(location)
+        .type(eventType)
         .build();
 
-        eventRepository.save(event);
+        event.prePersist();
+
+        
 
         List<MultipartFile> images = eventCreateDto.getImages();
         if (images != null) {
@@ -120,6 +137,8 @@ public class EventService {
                             .imageUrl(url)
                             .build();
 
+                    
+                    event.getEventImageList().add(img);
                     eventImageRepository.save(img);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -128,11 +147,11 @@ public class EventService {
             });
 
         }
+        eventRepository.save(event);
 
         return "hi";
 
     }
-    */
     
 
 }
