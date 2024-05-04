@@ -21,20 +21,20 @@ public class TourController {
     private final TourService tourService;
 
     @GetMapping("/locations")
-    public ResponseEntity<List<LocationGetDto>> getLocations(@RequestParam(name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "0", name="lastIdx") int lastIdx) throws UnsupportedEncodingException {
+    public ResponseEntity<List<LocationGetDto>> getLocations(@RequestParam(required = false, defaultValue = "", name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "0", name="lastIdx") int lastIdx) throws UnsupportedEncodingException {
         List<LocationGetDto> locationGetDtoList = tourService.GetLocations(city, keyword, lastIdx);
         return ResponseEntity.ok().body(locationGetDtoList);
     }
   
     @GetMapping("/city")
-    public ResponseEntity<List<CityGetDto>> getCities(){
-        List <CityGetDto> CityGetDtoList = tourService.GetCities();
+    public ResponseEntity<List<CityGetDto>> getCities(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "", name="keyword2") String keyword2){
+        List <CityGetDto> CityGetDtoList = tourService.GetCities(keyword, keyword2);
         return ResponseEntity.ok().body(CityGetDtoList);
 
     }
 
     @GetMapping("/schedules")
-    public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "0", name="lastIdx") int lastIdx) {
+    public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(required = false, defaultValue = "", name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "0", name="lastIdx") int lastIdx) {
         List<ScheduleGetDto> schedulesGetDtoList = tourService.GetSchedules(city, keyword, lastIdx);
         return ResponseEntity.ok().body(schedulesGetDtoList);
     }

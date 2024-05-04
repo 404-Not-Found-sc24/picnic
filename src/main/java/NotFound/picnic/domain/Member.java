@@ -1,5 +1,6 @@
 package NotFound.picnic.domain;
 
+import NotFound.picnic.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,9 +32,10 @@ public class Member {
     @Column
     private String phone;
 
-    @Column
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'USER'")
     @Builder.Default
-    private int role = 0;
+    private Role role = Role.USER;
 
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude

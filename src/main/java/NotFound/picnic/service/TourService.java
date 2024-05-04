@@ -6,6 +6,10 @@ import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,8 +45,13 @@ public class TourService {
 
 
     public List<LocationGetDto> GetLocations(String city, String keyword, int lastIdx) throws UnsupportedEncodingException {
-
-        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
+        Optional<List<Location>> locations;
+        if (city != null) {
+            locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
+        }
+        else {
+            locations = locationRepository.findByKeyword(keyword, lastIdx);
+        }
 
         return locations.map(locationList -> locationList.stream()
                 .map(location -> {
@@ -65,22 +74,31 @@ public class TourService {
     }
 
     public List<ScheduleGetDto> GetSchedules(String city, String keyword, int lastIdx) {
-        Optional<List<Location>> locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
-        if (locations.isPresent()) {
+        if (city != null) {
+            // 해당 도시로 여행 가는 일정들 가져오기
+            List<Schedule> scheduleList = scheduleRepository.findAllByLocationContaining(city);
 
-            List<Long> locationIds = locations.get().stream()
-                    .map(Location::getLocationId)
+            // 그 일정들에서 location들 확인하면서 해당 키워드와 동일한지 확인
+            scheduleList = scheduleList.stream()
+                    .filter(schedule -> {
+                        List<Location> locations = locationRepository.findLocationsBySchedule(schedule);
+                        return locations.stream()
+                                .anyMatch(location -> location.getName().contains(keyword) || location.getAddress().contains(keyword));
+                    })
                     .toList();
 
-            Optional<List<Schedule>> schedules = scheduleRepository.findDistinctSchedulesByLocations(locationIds);
-
-            return FindSchedules(schedules);
+            return FindSchedules(scheduleList);
         }
         return null;
     }
 
-    public List<CityGetDto> GetCities() {
-        List<City> cities = cityRepository.findAll();
+    public List<CityGetDto> GetCities(String keyword, String keyword2) {
+        List<City> cities = null;
+        if (keyword2 == null)
+            cities = cityRepository.findAllByNameContaining(keyword);
+        else
+            cities = cityRepository.findAllByNameContainingOrNameContaining(keyword, keyword2);
+
         return cities.stream()
                 .map(city -> CityGetDto.builder()
                         .cityName(city.getName())
@@ -135,6 +153,7 @@ public class TourService {
         LocationDetailDto locationDetail = LocationDetailDto.builder()
                 .name(location.getName())
                 .address(location.getAddress())
+                .detail(location.getDetail())
                 .latitude(location.getLatitude())
                 .longitude(location.getLongitude())
                 .division(location.getDivision())
@@ -276,15 +295,15 @@ public class TourService {
     }
 
     public List<ScheduleGetDto> GetSchedulesByLocationId(Long locationId) {
-        Optional<List<Schedule>> schedules = scheduleRepository.findDistinctSchedulesByLocation(locationId);
+        List<Schedule> schedules = scheduleRepository.findDistinctSchedulesByLocation(locationId);
 
         return FindSchedules(schedules);
     }
 
-    private List<ScheduleGetDto> FindSchedules(Optional<List<Schedule>> schedules) {
-        return schedules.map(scheduleList -> scheduleList.stream()
+    private List<ScheduleGetDto> FindSchedules(List<Schedule> schedules) {
+        return schedules.stream()
                 .map(schedule -> {
-                    Member member = memberRepository.findById(schedule.getMember().getMemberId()).orElseThrow();
+                    Member member = memberRepository.findById(schedule.getMember().getMemberId()).orElseThrow(() -> new RuntimeException("Member not found"));
 
                     Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
                     String imageUrl = null;
@@ -311,7 +330,7 @@ public class TourService {
                             .imageUrl(imageUrl)
                             .build();
                 })
-                .toList()).orElse(null);
+                .toList();
     }
 
     public String AddNewLocation(NewLocationDto newLocationDto, Principal principal) {
