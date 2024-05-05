@@ -2,10 +2,14 @@ package NotFound.picnic.dto;
 
 import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
-
 import lombok.*;
+import NotFound.picnic.enums.*;
 
-@Data
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class EventCreateDto {
 
@@ -13,6 +17,6 @@ public class EventCreateDto {
     private String content;
     private Long locationId;
     private List<MultipartFile> images;
-    private String eventType;
+    private EventType eventType;
 
 }

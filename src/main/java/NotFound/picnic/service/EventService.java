@@ -3,7 +3,7 @@ package NotFound.picnic.service;
 import NotFound.picnic.domain.*;
 import NotFound.picnic.repository.*;
 import NotFound.picnic.dto.*;
-import NotFound.picnic.enums.EventType;
+import NotFound.picnic.enums.*;
 
 import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
@@ -31,18 +31,9 @@ public class EventService {
     private final S3Upload s3Upload;
 
     public List<EventGetDto> GetEvents(int Type) throws UnsupportedEncodingException{
-        EventType eventType;
-        if (Type ==1){
-            eventType = EventType.ANNOUNCEMENT;
-        }
-        else if (Type == 2){
-            eventType = EventType.PROMOTION;
-        }
-        else {
-            eventType=EventType.EVENT;
-        }
         
-        List<Event> events =eventRepository.findAllByType(eventType);
+        
+        List<Event> events =eventRepository.findAllByType(CheckEventType(Type));
 
         events.sort(Comparator.comparing(Event::getCreateAt).reversed());
         
@@ -59,17 +50,8 @@ public class EventService {
     }
 
     public EventDetailGetDto GetEventDetail(Long eventId,int Type){
-        EventType eventType;
-        if (Type ==1){
-            eventType = EventType.ANNOUNCEMENT;
-        }
-        else if (Type == 2){
-            eventType = EventType.PROMOTION;
-        }
-        else {
-            eventType=EventType.EVENT;
-        }
-        List<Event> events =eventRepository.findAllByType(eventType);
+        
+        List<Event> events =eventRepository.findAllByType(CheckEventType(Type));
         Event event = events.stream()
         .filter(e -> e.getEventId().equals(eventId))
         .findFirst()
@@ -105,51 +87,87 @@ public class EventService {
             throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
         }
         Member member = optionalMember.get();
+        if(Role.USER==member.getRole()){
+            return "You are not allowed";
+        }
 
-        EventType eventType = EventType.valueOf(eventCreateDto.getEventType());
+        
+        if(EventType.ANNOUNCEMENT==eventCreateDto.getEventType()){
+            return "You are not allowed";
+        }
         Optional<Location> optionalLocation = locationRepository.findById(eventCreateDto.getLocationId());
-        Location location = optionalLocation.get();
-        // type이 공지일 경우와 location을 못 찾았을 경우의 예외처리
-        // git pull 후 member enum 확인
-
-
-
-
+        Location location=optionalLocation.orElseThrow(() -> new IllegalArgumentException("해당하는 장소를 찾을 수 없습니다."));
         Event event = Event.builder()
         .title(eventCreateDto.getTitle())
         .content(eventCreateDto.getContent())
         .member(member)
         .location(location)
-        .type(eventType)
+        .type(eventCreateDto.getEventType())
         .build();
 
         event.prePersist();
+        eventRepository.save(event);
 
         
-
         List<MultipartFile> images = eventCreateDto.getImages();
-        if (images != null) {
-            images.forEach(image -> {
+         
+             images.forEach(image -> {
                 try {
+                    if (!image.isEmpty()){
                     String url = s3Upload.uploadFiles(image, "event");
                     EventImage img = EventImage.builder()
                             .event(event)
                             .imageUrl(url)
                             .build();
 
-                    
-                    event.getEventImageList().add(img);
                     eventImageRepository.save(img);
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
             });
+            
+        
 
+        return returnMessage(eventCreateDto.getEventType());
+
+    }
+
+    public EventType CheckEventType(int Type){
+
+        EventType eventType;
+        if (Type ==1){
+            eventType = EventType.ANNOUNCEMENT;
         }
-        eventRepository.save(event);
+        else if (Type == 2){
+            eventType = EventType.PROMOTION;
+        }
+        else {
+            eventType=EventType.EVENT;
+        }
 
-        return "hi";
+        return eventType;
+    }
+
+    public String returnMessage(EventType eventType){
+         String message="이벤트";
+
+        if(eventType==EventType.EVENT){
+            ;
+        }
+
+        else if(eventType==EventType.PROMOTION){
+            message="홍보자료";
+        }
+        else if(eventType==EventType.ANNOUNCEMENT){
+            message="공지사항";
+        }
+
+
+        String returnMessage = String.format("%s(이)가 성공적으로 업로드 되었습니다", message);
+
+        return returnMessage;
 
     }
     
