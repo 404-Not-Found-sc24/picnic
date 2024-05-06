@@ -94,7 +94,7 @@ public class TourService {
 
     public List<CityGetDto> GetCities(String keyword, String keyword2) {
         List<City> cities = null;
-        if (keyword2 == null)
+        if (Objects.equals(keyword2, ""))
             cities = cityRepository.findAllByNameContaining(keyword);
         else
             cities = cityRepository.findAllByNameContainingOrNameContaining(keyword, keyword2);
