@@ -21,5 +21,5 @@ public interface ScheduleRepository  extends JpaRepository<Schedule, Long> {
 
     Optional<Schedule> findByScheduleId(Long scheduleId);
 
-    List<Schedule> findAllByLocationContaining(String keyword);
+    List<Schedule> findAllByLocationContainingAndShare(String keyword, boolean share);
 }
