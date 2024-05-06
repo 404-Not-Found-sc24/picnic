@@ -73,18 +73,18 @@ public class TourService {
                 .toList()).orElse(null);
     }
 
-    public List<ScheduleGetDto> GetSchedules(String city, String keyword, int lastIdx) {
+    public List<ScheduleGetDto> GetSchedules(String city, String keyword) {
         // 해당 도시로 여행 가는 일정들 가져오기
         List<Schedule> scheduleList = scheduleRepository.findAllByLocationContainingAndShare(city, true);
 
-        // 그 일정들에서 location들 확인하면서 해당 키워드와 동일한지 확인
-        scheduleList = scheduleList.stream()
-                .filter(schedule -> {
-                    List<Location> locations = locationRepository.findLocationsBySchedule(schedule);
-                    return locations.stream()
-                            .anyMatch(location -> location.getName().contains(keyword) || location.getAddress().contains(keyword));
-                })
-                .toList();
+//        // 그 일정들에서 location들 확인하면서 해당 키워드와 동일한지 확인
+//        scheduleList = scheduleList.stream()
+//                .filter(schedule -> {
+//                    List<Location> locations = locationRepository.findLocationsBySchedule(schedule);
+//                    return locations.stream()
+//                            .anyMatch(location -> location.getName().contains(keyword) || location.getAddress().contains(keyword));
+//                })
+//                .toList();
 
         return FindSchedules(scheduleList);
     }

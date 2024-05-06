@@ -34,8 +34,8 @@ public class TourController {
     }
 
     @GetMapping("/schedules")
-    public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(required = false, defaultValue = "", name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "0", name="lastIdx") int lastIdx) {
-        List<ScheduleGetDto> schedulesGetDtoList = tourService.GetSchedules(city, keyword, lastIdx);
+    public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(required = false, defaultValue = "", name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword) {
+        List<ScheduleGetDto> schedulesGetDtoList = tourService.GetSchedules(city, keyword);
         return ResponseEntity.ok().body(schedulesGetDtoList);
     }
 
