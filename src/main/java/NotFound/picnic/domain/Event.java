@@ -62,4 +62,6 @@ public class Event {
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
     private List<EventImage> eventImageList;
+
+
 }
