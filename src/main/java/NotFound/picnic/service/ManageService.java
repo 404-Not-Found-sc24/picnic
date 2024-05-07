@@ -2,6 +2,7 @@ package NotFound.picnic.service;
 
 import NotFound.picnic.domain.Approval;
 import NotFound.picnic.dto.ApprovalDto;
+import NotFound.picnic.enums.State;
 import NotFound.picnic.repository.ApprovalRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ public class ManageService {
         List<Approval> approvals = approvalRepository.findAll();
         List<ApprovalDto> approvalDtos = new ArrayList<>();
         for(Approval approval:approvals){
-            if(approval.getState() != 0){               // 아직 int로 되어있어서 int로 적용
+            if(approval.getState() != State.APPLIED){
                 continue;
             }
             ApprovalDto approvalDto = ApprovalDto.builder()

@@ -1,8 +1,10 @@
 package NotFound.picnic.repository;
 
+import NotFound.picnic.domain.Location;
 import NotFound.picnic.domain.Place;
 import NotFound.picnic.domain.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,4 +16,6 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
     Optional<List<Place>> findAllBySchedule_ScheduleId(Long scheduleId);
 
     boolean existsBySchedule(Schedule schedule);
+
+
 }
