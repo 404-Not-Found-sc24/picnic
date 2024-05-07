@@ -37,4 +37,11 @@ public class ManageController {
         String res = manageService.UpdateAnnouncement(announceCreateDto, eventId, principal);
         return ResponseEntity.ok().body(res);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/announce/{eventId}")
+    public ResponseEntity<String> deleteAnnouncement(@PathVariable Long eventId, Principal principal) {
+        String res = manageService.DeleteAnnouncement(eventId, principal);
+        return ResponseEntity.ok().body(res);
+    }
 }
