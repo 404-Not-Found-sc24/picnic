@@ -75,6 +75,9 @@ public class ManageService {
         Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
 
         Event event = eventRepository.findById(eventId).orElseThrow();
+        if (event.getMember() != member)
+            throw new ValidationException();
+
         if (announceCreateDto.getTitle() != null) event.setTitle(announceCreateDto.getTitle());
         if (announceCreateDto.getContent() != null) event.setContent(announceCreateDto.getContent());
         eventRepository.save(event);
