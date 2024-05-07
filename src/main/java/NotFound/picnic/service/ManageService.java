@@ -8,6 +8,7 @@ import NotFound.picnic.repository.ApprovalRepository;
 import NotFound.picnic.repository.EventImageRepository;
 import NotFound.picnic.repository.EventRepository;
 import NotFound.picnic.repository.MemberRepository;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,6 +75,9 @@ public class ManageService {
         Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
 
         Event event = eventRepository.findById(eventId).orElseThrow();
+        if (event.getMember() != member)
+            throw new ValidationException();
+
         if (announceCreateDto.getTitle() != null) event.setTitle(announceCreateDto.getTitle());
         if (announceCreateDto.getContent() != null) event.setContent(announceCreateDto.getContent());
         eventRepository.save(event);
@@ -106,5 +110,18 @@ public class ManageService {
                 }
             });
         }
+    }
+
+    public String DeleteAnnouncement(Long eventId, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Event event = eventRepository.findById(eventId).orElseThrow();
+
+        if (event.getMember() != member)
+            throw new ValidationException();
+
+        List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
+        eventImageRepository.deleteAll(eventList);
+        eventRepository.delete(event);
+        return "공지 삭제 완료";
     }
 }
