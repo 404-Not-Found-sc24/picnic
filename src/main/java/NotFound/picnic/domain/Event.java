@@ -49,6 +49,12 @@ public class Event {
         }
     }
 
+    @PreUpdate
+    public void preUpdate() {
+        // 서울 시간대로 현재 시간을 설정
+        this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn (name = "member_id")
     @ToString.Exclude

@@ -1,15 +1,12 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.AnnotationCreateDto;
+import NotFound.picnic.dto.AnnounceCreateDto;
 import NotFound.picnic.dto.ApprovalDto;
 import NotFound.picnic.service.ManageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
@@ -29,8 +26,15 @@ public class ManageController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/announce")
-    public ResponseEntity<String> createAnnotation(AnnotationCreateDto annotationCreateDto, Principal principal) {
-        String res = manageService.CreateAnnotation(annotationCreateDto, principal);
+    public ResponseEntity<String> createAnnouncement(AnnounceCreateDto announceCreateDto, Principal principal) {
+        String res = manageService.CreateAnnouncement(announceCreateDto, principal);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/announce/{eventId}")
+    public ResponseEntity<String> updateAnnouncement(AnnounceCreateDto announceCreateDto, @PathVariable Long eventId, Principal principal) {
+        String res = manageService.UpdateAnnouncement(announceCreateDto, eventId, principal);
         return ResponseEntity.ok().body(res);
     }
 }

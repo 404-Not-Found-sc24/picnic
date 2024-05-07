@@ -1,7 +1,7 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
-import NotFound.picnic.dto.AnnotationCreateDto;
+import NotFound.picnic.dto.AnnounceCreateDto;
 import NotFound.picnic.dto.ApprovalDto;
 import NotFound.picnic.enums.State;
 import NotFound.picnic.repository.ApprovalRepository;
@@ -54,18 +54,43 @@ public class ManageService {
         return approvalDtos;
     }
 
-    public String CreateAnnotation (AnnotationCreateDto annotationCreateDto, Principal principal) {
+    public String CreateAnnouncement (AnnounceCreateDto announceCreateDto, Principal principal) {
         Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
 
         Event event = Event.builder()
-                .title(annotationCreateDto.getTitle())
-                .content(annotationCreateDto.getContent())
-                .type(annotationCreateDto.getEventType())
+                .title(announceCreateDto.getTitle())
+                .content(announceCreateDto.getContent())
+                .type(announceCreateDto.getEventType())
                 .member(member)
                 .build();
         eventRepository.save(event);
 
-        List<MultipartFile> images = annotationCreateDto.getImages();
+        saveEventImages(announceCreateDto.getImages(), event);
+
+        return "공지 작성 완료";
+    }
+
+    public String UpdateAnnouncement(AnnounceCreateDto announceCreateDto, Long eventId, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+
+        Event event = eventRepository.findById(eventId).orElseThrow();
+        if (announceCreateDto.getTitle() != null) event.setTitle(announceCreateDto.getTitle());
+        if (announceCreateDto.getContent() != null) event.setContent(announceCreateDto.getContent());
+        eventRepository.save(event);
+
+        if (announceCreateDto.getImages() != null) {
+            List<EventImage> eventImageList = eventImageRepository.findAllByEvent(event);
+
+            if (eventImageList != null)
+                eventImageRepository.deleteAll(eventImageList);
+
+            saveEventImages(announceCreateDto.getImages(), event);
+        }
+
+        return "공지 수정 완료";
+    }
+
+    private void saveEventImages(List<MultipartFile> images, Event event) {
         if (images != null) {
             images.forEach(image -> {
                 try {
@@ -79,11 +104,7 @@ public class ManageService {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-
             });
-
         }
-
-        return "공지 작성 완료";
     }
 }

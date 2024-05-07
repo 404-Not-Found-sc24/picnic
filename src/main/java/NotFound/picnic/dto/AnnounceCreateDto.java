@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class AnnotationCreateDto {
+public class AnnounceCreateDto {
     private String title;
     private String content;
     private List<MultipartFile> images;
