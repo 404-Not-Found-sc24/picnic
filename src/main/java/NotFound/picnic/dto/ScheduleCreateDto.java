@@ -12,4 +12,5 @@ public class ScheduleCreateDto {
     private String location;
     private String startDate;
     private String endDate;
+    private boolean share;
 }
