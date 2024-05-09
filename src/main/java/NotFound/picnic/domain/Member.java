@@ -42,7 +42,6 @@ public class Member {
 
     @Column
     private String imageUrl;
-
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
     private List<Schedule> scheduleList;
