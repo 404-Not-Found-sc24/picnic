@@ -3,11 +3,9 @@ package NotFound.picnic.service;
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.AnnounceCreateDto;
 import NotFound.picnic.dto.ApprovalDto;
+import NotFound.picnic.dto.ApproveDto;
 import NotFound.picnic.enums.State;
-import NotFound.picnic.repository.ApprovalRepository;
-import NotFound.picnic.repository.EventImageRepository;
-import NotFound.picnic.repository.EventRepository;
-import NotFound.picnic.repository.MemberRepository;
+import NotFound.picnic.repository.*;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -28,6 +27,7 @@ public class ManageService {
     private final EventRepository eventRepository;
     private final EventImageRepository eventImageRepository;
     private final MemberRepository memberRepository;
+    private final LocationRepository locationRepository;
     private final S3Upload s3Upload;
 
     public List<ApprovalDto> GetApprovalList(Principal principal){
@@ -67,6 +67,41 @@ public class ManageService {
         saveEventImages(announceCreateDto.getImages(), event);
 
         return "공지 작성 완료";
+    }
+
+    public String ApproveApproval(Long approvalId, ApproveDto approveDto){
+        Approval approval = approvalRepository.findById(approvalId).orElseThrow();
+        if(approval.getState() != State.APPLIED){
+            return "승인할 수 없는 장소입니다.";
+        }
+
+        approval.setAddress(approveDto.getAddress());
+        approval.setContent(approveDto.getContent());
+        approval.setDetail(approveDto.getDetail());
+        approval.setName(approveDto.getName());
+        approval.setState(State.APPROVED);
+
+        approvalRepository.save(approval);
+
+        String city = approveDto.getAddress().split(" ")[0];
+        String[] strArray = {"서울특별시", "인천광역시", "대구광역시", "대전광역시", "부산광역시", "울산광역시", "세종특별자치시", "제주특별자치도"};
+        List<String> strList = new ArrayList<>(Arrays.asList(strArray));
+        if(!strList.contains(city)) {
+            city = city + " " +approveDto.getAddress().split(" ")[1];
+        }
+        Location location = Location.builder()
+                .name(approval.getName())
+                .address(approval.getAddress())
+                .city(city)
+                .detail(approval.getDetail())
+                .latitude(approval.getLatitude())
+                .longitude(approval.getLongitude())
+                .division(approval.getDivision())
+                .phone(approval.getPhone())
+                .build();
+        locationRepository.save(location);
+
+        return "장소 추가 완료";
     }
 
     public String DenyApproval(Long approvalId){
