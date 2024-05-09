@@ -3,6 +3,7 @@ package NotFound.picnic.controller;
 import NotFound.picnic.dto.AnnounceCreateDto;
 import NotFound.picnic.dto.ApprovalDto;
 import NotFound.picnic.dto.ApproveDto;
+import NotFound.picnic.dto.UserGetDto;
 import NotFound.picnic.service.ManageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,5 +60,12 @@ public class ManageController {
     public ResponseEntity<String> deleteAnnouncement(@PathVariable Long eventId, Principal principal) {
         String res = manageService.DeleteAnnouncement(eventId, principal);
         return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/member")
+    public ResponseEntity<List<UserGetDto>> getUsers() {
+        List<UserGetDto> userGetDtoList = manageService.getUsers();
+        return ResponseEntity.ok().body(userGetDtoList);
     }
 }
