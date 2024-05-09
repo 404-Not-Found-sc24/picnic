@@ -6,6 +6,7 @@ import lombok.*;
 @Builder
 public class CityGetDto {
     private String cityName;
+    private String cityDetail;
     private String imageUrl;
 
 
