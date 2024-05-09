@@ -47,6 +47,7 @@ public class ManageService {
                     .latitude(approval.getLatitude())
                     .longitude(approval.getLongitude())
                     .name(approval.getName())
+                    .state(approval.getState().name().toLowerCase())
                     .userName(principal.getName())
                     .build();
             approvalDtos.add(approvalDto);
