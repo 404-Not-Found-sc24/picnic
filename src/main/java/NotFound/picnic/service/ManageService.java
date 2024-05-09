@@ -4,6 +4,7 @@ import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.AnnounceCreateDto;
 import NotFound.picnic.dto.ApprovalDto;
 import NotFound.picnic.dto.ApproveDto;
+import NotFound.picnic.dto.UserGetDto;
 import NotFound.picnic.enums.State;
 import NotFound.picnic.repository.*;
 import jakarta.validation.ValidationException;
@@ -17,6 +18,8 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.rmi.server.LogStream.log;
 
@@ -169,5 +172,19 @@ public class ManageService {
         eventImageRepository.deleteAll(eventList);
         eventRepository.delete(event);
         return "공지 삭제 완료";
+    }
+
+    public List<UserGetDto> getUsers() {
+        List<Member> memberList = memberRepository.findAll();
+
+        return memberList.stream().map(member -> UserGetDto.builder()
+                .memberId(member.getMemberId())
+                .email(member.getEmail())
+                .name(member.getName())
+                .nickname(member.getNickname())
+                .phone(member.getPhone())
+                .role(member.getRole())
+                .build())
+                .collect(Collectors.toList());
     }
 }
