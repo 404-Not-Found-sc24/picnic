@@ -8,7 +8,7 @@ import lombok.Data;
 public class DiaryGetDto {
     private Long diaryId;
     private Long placeId;
-    private String scheduleName;
+    private String title;
     private String date;
     private String content;
     private String imageUrl;
