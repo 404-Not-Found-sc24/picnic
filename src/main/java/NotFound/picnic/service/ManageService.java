@@ -69,6 +69,18 @@ public class ManageService {
         return "공지 작성 완료";
     }
 
+    public String DenyApproval(Long approvalId){
+
+        Approval approval = approvalRepository.findById(approvalId).orElseThrow();
+        if(approval.getState() != State.APPLIED){
+            return "거절할 수 없는 장소입니다.";
+        }
+        approval.setState(State.DENIED);
+        approvalRepository.save(approval);
+
+        return "장소 거절이 완료되었습니다.";
+    }
+
     public String UpdateAnnouncement(AnnounceCreateDto announceCreateDto, Long eventId, Principal principal) {
         Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
 
