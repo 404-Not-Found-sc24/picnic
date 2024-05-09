@@ -34,9 +34,6 @@ public class ManageService {
         List<Approval> approvals = approvalRepository.findAll();
         List<ApprovalDto> approvalDtos = new ArrayList<>();
         for(Approval approval:approvals){
-            if(approval.getState() != State.APPLIED){
-                continue;
-            }
             ApprovalDto approvalDto = ApprovalDto.builder()
                     .approvalId(approval.getApprovalId())
                     .address(approval.getAddress())
