@@ -57,6 +57,10 @@ public class AuthService {
                 .grantType("Authorization")
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .email(member.getEmail())
+                .name(member.getName())
+                .nickname(member.getNickname())
+                .phone(member.getPhone())
                 .build();
 
     }
