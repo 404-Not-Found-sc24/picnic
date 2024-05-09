@@ -2,6 +2,7 @@ package NotFound.picnic.controller;
 
 import NotFound.picnic.dto.AnnounceCreateDto;
 import NotFound.picnic.dto.ApprovalDto;
+import NotFound.picnic.dto.ApproveDto;
 import NotFound.picnic.service.ManageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,21 @@ public class ManageController {
     public ResponseEntity<List<ApprovalDto>> getApprovalList(Principal principal){
         List<ApprovalDto> approvalDto = manageService.GetApprovalList(principal);
         return ResponseEntity.ok().body(approvalDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/approve/{approvalId}")
+    public ResponseEntity<String> approveApproval(@PathVariable Long approvalId, @RequestBody ApproveDto approveDto){
+        String response = manageService.ApproveApproval(approvalId, approveDto);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/deny/{approvalId}")
+    public ResponseEntity<String> denyApproval(@PathVariable Long approvalId){
+        String response = manageService.DenyApproval(approvalId);
+        return ResponseEntity.ok().body(response);
+
     }
 
     @PreAuthorize("hasRole('ADMIN')")

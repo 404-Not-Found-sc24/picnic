@@ -48,6 +48,7 @@ public class ScheduleService {
                 .startDate(scheduleCreateDto.getStartDate())
                 .endDate(scheduleCreateDto.getEndDate())
                 .member(member)
+                .share(scheduleCreateDto.isShare())
                 .build();
 
         scheduleRepository.save(schedule);

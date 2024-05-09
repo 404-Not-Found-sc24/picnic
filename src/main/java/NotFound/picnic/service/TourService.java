@@ -106,7 +106,7 @@ public class TourService {
                 .collect(Collectors.toList());
     }
 
-    public String DuplicateSchedule(Long scheduleId, ScheduleDuplicateDto scheduleDuplicateDto, Principal principal) {
+    public Long DuplicateSchedule(Long scheduleId, ScheduleDuplicateDto scheduleDuplicateDto, Principal principal) {
         // User validate
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
@@ -139,7 +139,8 @@ public class TourService {
                     .build();
             Place test = placeRepository.save(place_new);
         }
-        return "일정 복제 완료";
+
+        return savedSchedule.getScheduleId();
     }
 
     public LocationDetailDto GetLocationDetail(Long locationId) {
