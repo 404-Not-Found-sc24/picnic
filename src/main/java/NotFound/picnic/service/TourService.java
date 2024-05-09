@@ -101,6 +101,7 @@ public class TourService {
         return cities.stream()
                 .map(city -> CityGetDto.builder()
                         .cityName(city.getName())
+                        .cityDetail(city.getDetail())
                         .imageUrl(city.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
