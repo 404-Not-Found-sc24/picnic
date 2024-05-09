@@ -229,4 +229,35 @@ public class ScheduleService {
         return placeGetDtoList;
     }
 
+    public List<MyScheduleGetDto> GetSchedulesInMyPage (Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+
+        List<Schedule> scheduleList = scheduleRepository.findAllByMember(member);
+
+        return scheduleList.stream().map(schedule -> {
+            Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
+            Optional<Image> image = diaries.flatMap(diaryList ->
+                    diaryList.stream()
+                            .map(imageRepository::findTopByDiary)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .findFirst()
+            );
+
+            String imageUrl = null;
+            if (image.isPresent())
+                imageUrl = image.get().getImageUrl();
+
+            return MyScheduleGetDto.builder()
+                    .scheduleId(schedule.getScheduleId())
+                    .name(schedule.getName())
+                    .startDate(schedule.getStartDate())
+                    .endDate(schedule.getEndDate())
+                    .share(schedule.isShare())
+                    .location(schedule.getLocation())
+                    .imageUrl(imageUrl)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
 }
