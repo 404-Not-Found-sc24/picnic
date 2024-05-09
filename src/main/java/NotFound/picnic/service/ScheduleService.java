@@ -32,7 +32,7 @@ public class ScheduleService {
     private final LocationImageRepostiory locationImageRepostiory;
 
     // 여행 일정 생성
-    public String createSchedule(ScheduleCreateDto scheduleCreateDto, Principal principal) {
+    public Long createSchedule(ScheduleCreateDto scheduleCreateDto, Principal principal) {
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
         if (optionalMember.isEmpty()) {
@@ -52,7 +52,7 @@ public class ScheduleService {
 
         scheduleRepository.save(schedule);
 
-        return "저장 완료";
+        return schedule.getScheduleId();
     }
 
     // 일정에 장소 추가
