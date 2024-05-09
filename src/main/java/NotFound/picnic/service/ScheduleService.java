@@ -254,6 +254,7 @@ public class ScheduleService {
                     .startDate(schedule.getStartDate())
                     .endDate(schedule.getEndDate())
                     .share(schedule.isShare())
+                    .location(schedule.getLocation())
                     .imageUrl(imageUrl)
                     .build();
         }).collect(Collectors.toList());

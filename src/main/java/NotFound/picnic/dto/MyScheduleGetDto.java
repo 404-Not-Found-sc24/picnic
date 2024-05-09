@@ -11,5 +11,6 @@ public class MyScheduleGetDto {
     private String startDate;
     private String endDate;
     private String imageUrl;
+    private String location;
     private boolean share;
 }
