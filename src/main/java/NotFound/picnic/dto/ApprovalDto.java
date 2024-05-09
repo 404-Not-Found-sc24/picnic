@@ -15,5 +15,6 @@ public class ApprovalDto {
     private Double latitude;
     private Double longitude;
     private String name;
+    private String state;
     private String userName;
 }
