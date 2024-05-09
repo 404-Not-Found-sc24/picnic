@@ -27,7 +27,7 @@ public class ManageController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/approve/{approvalId}")
-    public ResponseEntity<String> approveApproval(@PathVariable Long approvalId, ApproveDto approveDto){
+    public ResponseEntity<String> approveApproval(@PathVariable Long approvalId, @RequestBody ApproveDto approveDto){
         String response = manageService.ApproveApproval(approvalId, approveDto);
         return ResponseEntity.ok().body(response);
     }
