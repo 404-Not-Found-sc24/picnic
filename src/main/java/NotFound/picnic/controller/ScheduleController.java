@@ -20,8 +20,8 @@ public class ScheduleController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping()
-    public ResponseEntity<String> createSchedule(@RequestBody ScheduleCreateDto scheduleCreateDto, Principal principal) {
-        String message = scheduleService.createSchedule(scheduleCreateDto, principal);
+    public ResponseEntity<Long> createSchedule(@RequestBody ScheduleCreateDto scheduleCreateDto, Principal principal) {
+        Long message = scheduleService.createSchedule(scheduleCreateDto, principal);
         return ResponseEntity.ok().body(message);
     }
 
