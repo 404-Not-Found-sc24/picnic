@@ -25,6 +25,14 @@ public class ManageController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/deny/{approvalId}")
+    public ResponseEntity<String> denyApproval(@PathVariable Long approvalId){
+        String response = manageService.DenyApproval(approvalId);
+        return ResponseEntity.ok().body(response);
+
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/announce")
     public ResponseEntity<String> createAnnouncement(AnnounceCreateDto announceCreateDto, Principal principal) {
         String res = manageService.CreateAnnouncement(announceCreateDto, principal);
