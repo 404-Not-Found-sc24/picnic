@@ -19,4 +19,7 @@ public class City {
 
     @Column
     private String imageUrl;
+
+    @Column
+    private String detail;
 }
