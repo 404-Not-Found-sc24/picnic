@@ -2,15 +2,15 @@ package NotFound.picnic.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
 @Builder
-@Getter
-public class ScheduleCreateDto {
+public class MyScheduleGetDto {
+    private Long scheduleId;
     private String name;
-    private String location;
     private String startDate;
     private String endDate;
+    private String imageUrl;
+    private String location;
     private boolean share;
 }

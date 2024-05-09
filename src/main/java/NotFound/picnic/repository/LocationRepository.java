@@ -25,4 +25,6 @@ public interface LocationRepository  extends JpaRepository<Location, Long> {
     @Query(value="select * from location where city like concat('%', :keyword, '%') or name like concat('%',:keyword,'%') or address like concat('%',:keyword,'%') order by name, location_id desc limit 20 offset :lastIdx", nativeQuery = true)
     Optional<List<Location>> findByKeyword(@Param("keyword") String keyword, @Param("lastIdx") int lastIdx);
 
+    @Query("select distinct p.location from Place p where p.schedule = :schedule")
+    List<Location> findLocationsBySchedule(Schedule schedule);
 }

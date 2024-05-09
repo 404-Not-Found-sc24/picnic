@@ -33,7 +33,7 @@ public class Member {
     private String phone;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'USER'")
+    @Column(nullable = false)
     @Builder.Default
     private Role role = Role.USER;
 
