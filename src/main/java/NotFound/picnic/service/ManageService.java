@@ -1,10 +1,8 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
-import NotFound.picnic.dto.AnnounceCreateDto;
-import NotFound.picnic.dto.ApprovalDto;
-import NotFound.picnic.dto.ApproveDto;
-import NotFound.picnic.dto.UserGetDto;
+import NotFound.picnic.dto.*;
+import NotFound.picnic.enums.Role;
 import NotFound.picnic.enums.State;
 import NotFound.picnic.repository.*;
 import jakarta.validation.ValidationException;
@@ -186,5 +184,25 @@ public class ManageService {
                 .role(member.getRole())
                 .build())
                 .collect(Collectors.toList());
+    }
+
+    public String UserRoleChange(UserRoleChangeDto userRoleChangeDto){
+        Member member = memberRepository.findById(userRoleChangeDto.getMemberId()).orElseThrow();
+        switch (userRoleChangeDto.getTargetRole()){
+            case "ADMIN":
+                member.setRole(Role.ADMIN);
+                memberRepository.save(member);
+                break;
+            case "COMPANY":
+                member.setRole(Role.COMPANY);
+                memberRepository.save(member);
+                break;
+            case "USER":
+                member.setRole(Role.USER);
+                memberRepository.save(member);
+                break;
+        }
+
+        return "권한 변경 완료";
     }
 }
