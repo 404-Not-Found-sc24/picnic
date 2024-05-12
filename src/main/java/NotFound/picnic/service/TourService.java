@@ -2,6 +2,7 @@ package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.*;
+import NotFound.picnic.enums.State;
 import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
@@ -351,6 +352,7 @@ public class TourService {
                 .division(newLocationDto.getDivision())
                 .phone(newLocationDto.getPhone())
                 .content(newLocationDto.getContent())
+                .state(State.APPLIED)
                 .build();
 
         Approval apply_approval = approvalRepository.save(approval);
