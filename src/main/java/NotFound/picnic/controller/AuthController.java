@@ -1,9 +1,6 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.LoginRequestDto;
-import NotFound.picnic.dto.LoginResponseDto;
-import NotFound.picnic.dto.ReissueTokenDto;
-import NotFound.picnic.dto.SignUpDto;
+import NotFound.picnic.dto.*;
 import NotFound.picnic.service.AuthService;
 import NotFound.picnic.service.S3Upload;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
@@ -59,5 +57,12 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto>  reissueAccessToken(@RequestBody ReissueTokenDto refreshToken) {
         LoginResponseDto token = this.authService.reissueAccessToken(refreshToken);
         return ResponseEntity.status(HttpStatus.OK).body(token);
+    }
+
+    @GetMapping("")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserGetDto> getUser(Principal principal) {
+        UserGetDto userGetDto = authService.getUser(principal);
+        return ResponseEntity.status(HttpStatus.OK).body(userGetDto);
     }
 }
