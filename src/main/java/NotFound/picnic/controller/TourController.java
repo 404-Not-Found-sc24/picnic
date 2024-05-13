@@ -65,7 +65,7 @@ public class TourController {
         return ResponseEntity.ok().body(diaryGetDtoList);
     }
 
-    @GetMapping("/diaries/{diaryId}")
+    @GetMapping("/diary/{diaryId}")
     public ResponseEntity<DiaryDetailDto> getDiaryDetail(@PathVariable(name="diaryId") Long diaryId){
         DiaryDetailDto diaryDetailDto = tourService.GetDiaryDetail(diaryId);
         return ResponseEntity.ok().body(diaryDetailDto);
