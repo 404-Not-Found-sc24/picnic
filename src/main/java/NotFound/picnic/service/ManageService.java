@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.rmi.server.LogStream.log;
 
 @Slf4j
 @Service
@@ -182,6 +181,7 @@ public class ManageService {
                 .nickname(member.getNickname())
                 .phone(member.getPhone())
                 .role(member.getRole())
+                .imageUrl(member.getImageUrl())
                 .build())
                 .collect(Collectors.toList());
     }

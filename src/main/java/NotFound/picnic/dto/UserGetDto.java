@@ -13,4 +13,5 @@ public class UserGetDto {
     private String nickname;
     private String phone;
     private Role role;
+    private String imageUrl;
 }

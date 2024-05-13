@@ -16,7 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -113,4 +116,17 @@ public class AuthService {
                     .build();
     }
 
+    public UserGetDto getUser(Principal principal) {
+        Member member =  memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+
+        return UserGetDto.builder()
+                        .memberId(member.getMemberId())
+                        .email(member.getEmail())
+                        .name(member.getName())
+                        .nickname(member.getNickname())
+                        .phone(member.getPhone())
+                        .role(member.getRole())
+                        .imageUrl(member.getImageUrl())
+                        .build();
+    }
 }
