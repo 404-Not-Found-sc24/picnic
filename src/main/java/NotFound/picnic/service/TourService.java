@@ -282,6 +282,7 @@ public class TourService {
                         return DiaryGetDto.builder()
                                 .diaryId(diary.get().getDiaryId())
                                 .placeId(place.getPlaceId())
+                                .userName(schedule.getMember().getName())
                                 .title(diary.get().getTitle())
                                 .date(place.getDate())
                                 .content(diary.get().getContent())
