@@ -2,6 +2,7 @@ package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.*;
+import NotFound.picnic.enums.State;
 import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
@@ -73,12 +74,12 @@ public class TourService {
                 .toList()).orElse(null);
     }
 
-    public List<ScheduleGetDto> GetSchedules(String city, String keyword, int lastIdx) {
-        if (city != null) {
-            // 해당 도시로 여행 가는 일정들 가져오기
-            List<Schedule> scheduleList = scheduleRepository.findAllByLocationContaining(city);
+    public List<ScheduleGetDto> GetSchedules(String city, String keyword) {
+        // 해당 도시로 여행 가는 일정들 가져오기
+        List<Schedule> scheduleList = scheduleRepository.findAllByLocationContainingAndShare(city, true);
 
-            // 그 일정들에서 location들 확인하면서 해당 키워드와 동일한지 확인
+        // 그 일정들에서 location들 확인하면서 해당 키워드와 동일한지 확인
+        if (!Objects.equals(keyword, "")) {
             scheduleList = scheduleList.stream()
                     .filter(schedule -> {
                         List<Location> locations = locationRepository.findLocationsBySchedule(schedule);
@@ -86,15 +87,14 @@ public class TourService {
                                 .anyMatch(location -> location.getName().contains(keyword) || location.getAddress().contains(keyword));
                     })
                     .toList();
-
-            return FindSchedules(scheduleList);
         }
-        return null;
+
+        return FindSchedules(scheduleList);
     }
 
     public List<CityGetDto> GetCities(String keyword, String keyword2) {
         List<City> cities = null;
-        if (keyword2 == null)
+        if (Objects.equals(keyword2, ""))
             cities = cityRepository.findAllByNameContaining(keyword);
         else
             cities = cityRepository.findAllByNameContainingOrNameContaining(keyword, keyword2);
@@ -102,12 +102,13 @@ public class TourService {
         return cities.stream()
                 .map(city -> CityGetDto.builder()
                         .cityName(city.getName())
+                        .cityDetail(city.getDetail())
                         .imageUrl(city.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
     }
 
-    public String DuplicateSchedule(Long scheduleId, ScheduleDuplicateDto scheduleDuplicateDto, Principal principal) {
+    public Long DuplicateSchedule(Long scheduleId, ScheduleDuplicateDto scheduleDuplicateDto, Principal principal) {
         // User validate
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
@@ -140,7 +141,8 @@ public class TourService {
                     .build();
             Place test = placeRepository.save(place_new);
         }
-        return "일정 복제 완료";
+
+        return savedSchedule.getScheduleId();
     }
 
     public LocationDetailDto GetLocationDetail(Long locationId) {
@@ -280,7 +282,7 @@ public class TourService {
                         return DiaryGetDto.builder()
                                 .diaryId(diary.get().getDiaryId())
                                 .placeId(place.getPlaceId())
-                                .scheduleName(schedule.getName())
+                                .title(diary.get().getTitle())
                                 .date(place.getDate())
                                 .content(diary.get().getContent())
                                 .imageUrl(imageUrl)
@@ -350,6 +352,7 @@ public class TourService {
                 .division(newLocationDto.getDivision())
                 .phone(newLocationDto.getPhone())
                 .content(newLocationDto.getContent())
+                .state(State.APPLIED)
                 .build();
 
         Approval apply_approval = approvalRepository.save(approval);

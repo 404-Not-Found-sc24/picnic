@@ -20,8 +20,8 @@ public class ScheduleController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping()
-    public ResponseEntity<String> createSchedule(@RequestBody ScheduleCreateDto scheduleCreateDto, Principal principal) {
-        String message = scheduleService.createSchedule(scheduleCreateDto, principal);
+    public ResponseEntity<Long> createSchedule(@RequestBody ScheduleCreateDto scheduleCreateDto, Principal principal) {
+        Long message = scheduleService.createSchedule(scheduleCreateDto, principal);
         return ResponseEntity.ok().body(message);
     }
 
@@ -49,5 +49,12 @@ public class ScheduleController {
     public ResponseEntity<List<List<PlaceGetDto>>> getPlaces(@PathVariable(name="scheduleId") Long scheduleId) {
         List<List<PlaceGetDto>> placeList = scheduleService.getPlaces(scheduleId);
         return ResponseEntity.ok().body(placeList);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("")
+    public ResponseEntity<List<MyScheduleGetDto>> getSchedulesInMyPage(Principal principal) {
+        List<MyScheduleGetDto> scheduleGetDtos = scheduleService.GetSchedulesInMyPage(principal);
+        return ResponseEntity.ok().body(scheduleGetDtos);
     }
 }

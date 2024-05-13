@@ -37,6 +37,12 @@ public class Member {
     @Builder.Default
     private Role role = Role.USER;
 
+    @Column
+    private Long locationId;
+
+    @Column
+    private String imageUrl;
+
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @ToString.Exclude
     private List<Schedule> scheduleList;

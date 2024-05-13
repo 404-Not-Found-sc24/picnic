@@ -32,7 +32,7 @@ public class ScheduleService {
     private final LocationImageRepostiory locationImageRepostiory;
 
     // 여행 일정 생성
-    public String createSchedule(ScheduleCreateDto scheduleCreateDto, Principal principal) {
+    public Long createSchedule(ScheduleCreateDto scheduleCreateDto, Principal principal) {
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
         if (optionalMember.isEmpty()) {
@@ -48,11 +48,12 @@ public class ScheduleService {
                 .startDate(scheduleCreateDto.getStartDate())
                 .endDate(scheduleCreateDto.getEndDate())
                 .member(member)
+                .share(scheduleCreateDto.isShare())
                 .build();
 
         scheduleRepository.save(schedule);
 
-        return "저장 완료";
+        return schedule.getScheduleId();
     }
 
     // 일정에 장소 추가
@@ -226,6 +227,37 @@ public class ScheduleService {
         }
 
         return placeGetDtoList;
+    }
+
+    public List<MyScheduleGetDto> GetSchedulesInMyPage (Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+
+        List<Schedule> scheduleList = scheduleRepository.findAllByMember(member);
+
+        return scheduleList.stream().map(schedule -> {
+            Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
+            Optional<Image> image = diaries.flatMap(diaryList ->
+                    diaryList.stream()
+                            .map(imageRepository::findTopByDiary)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .findFirst()
+            );
+
+            String imageUrl = null;
+            if (image.isPresent())
+                imageUrl = image.get().getImageUrl();
+
+            return MyScheduleGetDto.builder()
+                    .scheduleId(schedule.getScheduleId())
+                    .name(schedule.getName())
+                    .startDate(schedule.getStartDate())
+                    .endDate(schedule.getEndDate())
+                    .share(schedule.isShare())
+                    .location(schedule.getLocation())
+                    .imageUrl(imageUrl)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
 }

@@ -1,6 +1,7 @@
 package NotFound.picnic.repository;
 
 import NotFound.picnic.domain.Location;
+import NotFound.picnic.domain.Member;
 import NotFound.picnic.domain.Place;
 import NotFound.picnic.domain.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,5 +22,7 @@ public interface ScheduleRepository  extends JpaRepository<Schedule, Long> {
 
     Optional<Schedule> findByScheduleId(Long scheduleId);
 
-    List<Schedule> findAllByLocationContaining(String keyword);
+    List<Schedule> findAllByLocationContainingAndShare(String keyword, boolean share);
+
+    List<Schedule> findAllByMember(Member member);
 }

@@ -34,15 +34,15 @@ public class TourController {
     }
 
     @GetMapping("/schedules")
-    public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(required = false, defaultValue = "", name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword, @RequestParam(required = false, defaultValue = "0", name="lastIdx") int lastIdx) {
-        List<ScheduleGetDto> schedulesGetDtoList = tourService.GetSchedules(city, keyword, lastIdx);
+    public ResponseEntity<List<ScheduleGetDto>> getSchedules(@RequestParam(required = false, defaultValue = "", name="city") String city, @RequestParam(required = false, defaultValue = "", name="keyword") String keyword) {
+        List<ScheduleGetDto> schedulesGetDtoList = tourService.GetSchedules(city, keyword);
         return ResponseEntity.ok().body(schedulesGetDtoList);
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/schedules/{scheduleId}")
-    public ResponseEntity<String> duplicateSchedule(@PathVariable(name="scheduleId") Long scheduleId, @RequestBody ScheduleDuplicateDto scheduleDuplicateDto, Principal principal){
-        String response = tourService.DuplicateSchedule(scheduleId, scheduleDuplicateDto, principal);
+    public ResponseEntity<Long> duplicateSchedule(@PathVariable(name="scheduleId") Long scheduleId, @RequestBody ScheduleDuplicateDto scheduleDuplicateDto, Principal principal){
+        Long response = tourService.DuplicateSchedule(scheduleId, scheduleDuplicateDto, principal);
         return ResponseEntity.ok().body(response);
     }
 
