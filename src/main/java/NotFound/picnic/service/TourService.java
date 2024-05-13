@@ -297,6 +297,20 @@ public class TourService {
         ).orElse(Collections.emptyList());
     }
 
+    public DiaryDetailDto GetDiaryDetail(Long diaryId){
+        Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+        List<Image> images = imageRepository.findAllByDiary(diary);
+
+        return DiaryDetailDto.builder()
+                .userName(diary.getPlace().getSchedule().getMember().getName())
+                .title(diary.getTitle())
+                .date(diary.getPlace().getDate())
+                .weather(diary.getWeather())
+                .content(diary.getContent())
+                .imageUrl(images.stream().map(Image::getImageUrl).collect(Collectors.toList()))
+                .build();
+    }
+
     public List<ScheduleGetDto> GetSchedulesByLocationId(Long locationId) {
         List<Schedule> schedules = scheduleRepository.findDistinctSchedulesByLocation(locationId);
 
