@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -72,4 +75,19 @@ public class ManageController {
         String response = manageService.UserRoleChange(userRoleChangeDto);
         return ResponseEntity.ok().body(response);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/promotion/{eventId}")
+    public ResponseEntity<String> updatePromotion(EventCreateDto eventCreateDto, @PathVariable(name="eventId") Long eventId, Principal principal) {
+        String res = manageService.UpdateEvent(eventCreateDto, eventId, principal,2);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/promotion/{eventId}")
+    public ResponseEntity<String> deletePromotion(@PathVariable(name="eventId") Long eventId, Principal principal) {
+        String res = manageService.DeleteEvent(eventId, principal,2);
+        return ResponseEntity.ok().body(res);
+    }
+    
 }
