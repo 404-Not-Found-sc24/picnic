@@ -132,7 +132,7 @@ public class ScheduleService {
                         .content(diary.getContent());
 
                 // diary에 매칭되는 이미지 조회
-                Optional<Image> optionalImage = imageRepository.findImageUrlByDiary_DiaryId(diary.getDiaryId());
+                Optional<Image> optionalImage = imageRepository.findTopImageUrlByDiary_DiaryId(diary.getDiaryId());
                 // 이미지가 존재하면 imageUrl 설정
                 String imageUrl = optionalImage.map(Image::getImageUrl).orElse(null);
                 optionalImage.ifPresentOrElse(
