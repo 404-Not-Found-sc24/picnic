@@ -15,7 +15,7 @@ public class SchedulePlaceDiaryGetDto {
     private String locationName;
     private String date;
     private String time;
-    private Long recordId;
+    private Long diaryId;
     private String title;
     private String content;
     private String imageUrl;
