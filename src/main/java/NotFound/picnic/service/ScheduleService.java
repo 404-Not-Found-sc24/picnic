@@ -127,7 +127,7 @@ public class ScheduleService {
                         .locationName(place.getLocation().getName())
                         .date(place.getDate())
                         .time(place.getTime())
-                        .recordId(diary.getDiaryId())
+                        .diaryId(diary.getDiaryId())
                         .title(diary.getTitle())
                         .content(diary.getContent());
 

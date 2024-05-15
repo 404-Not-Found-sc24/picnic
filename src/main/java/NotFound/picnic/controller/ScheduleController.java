@@ -41,7 +41,7 @@ public class ScheduleController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/schedules/{scheduleId}")
-    public ResponseEntity<?> getSchedulePlaceDiary(@PathVariable(name="scheduleId") Long scheduleId, Principal principal){
+    public ResponseEntity<List<SchedulePlaceDiaryGetDto>> getSchedulePlaceDiary(@PathVariable(name="scheduleId") Long scheduleId, Principal principal){
         List<SchedulePlaceDiaryGetDto> schedulePlaceDiaryList = scheduleService.getSchedulePlaceDiary(scheduleId, principal);
         return ResponseEntity.ok().body(schedulePlaceDiaryList);
     }
