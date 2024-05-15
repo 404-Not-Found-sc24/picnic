@@ -65,4 +65,11 @@ public class AuthController {
         UserGetDto userGetDto = authService.getUser(principal);
         return ResponseEntity.status(HttpStatus.OK).body(userGetDto);
     }
+
+    @PatchMapping()
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> updateUser(UserUpdateDto userUpdateDto, Principal principal) throws IOException {
+        String res = authService.updateUser(userUpdateDto, principal);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
 }
