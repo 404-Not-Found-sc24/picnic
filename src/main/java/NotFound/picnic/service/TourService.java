@@ -2,6 +2,7 @@ package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.*;
+import NotFound.picnic.enums.State;
 import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
@@ -101,6 +102,7 @@ public class TourService {
         return cities.stream()
                 .map(city -> CityGetDto.builder()
                         .cityName(city.getName())
+                        .cityDetail(city.getDetail())
                         .imageUrl(city.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
@@ -280,7 +282,8 @@ public class TourService {
                         return DiaryGetDto.builder()
                                 .diaryId(diary.get().getDiaryId())
                                 .placeId(place.getPlaceId())
-                                .scheduleName(schedule.getName())
+                                .userName(schedule.getMember().getName())
+                                .title(diary.get().getTitle())
                                 .date(place.getDate())
                                 .content(diary.get().getContent())
                                 .imageUrl(imageUrl)
@@ -292,6 +295,20 @@ public class TourService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
         ).orElse(Collections.emptyList());
+    }
+
+    public DiaryDetailDto GetDiaryDetail(Long diaryId){
+        Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+        List<Image> images = imageRepository.findAllByDiary(diary);
+
+        return DiaryDetailDto.builder()
+                .userName(diary.getPlace().getSchedule().getMember().getName())
+                .title(diary.getTitle())
+                .date(diary.getPlace().getDate())
+                .weather(diary.getWeather())
+                .content(diary.getContent())
+                .imageUrl(images.stream().map(Image::getImageUrl).collect(Collectors.toList()))
+                .build();
     }
 
     public List<ScheduleGetDto> GetSchedulesByLocationId(Long locationId) {
@@ -350,6 +367,7 @@ public class TourService {
                 .division(newLocationDto.getDivision())
                 .phone(newLocationDto.getPhone())
                 .content(newLocationDto.getContent())
+                .state(State.APPLIED)
                 .build();
 
         Approval apply_approval = approvalRepository.save(approval);

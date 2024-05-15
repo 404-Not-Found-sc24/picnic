@@ -3,14 +3,15 @@ package NotFound.picnic.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
-public class DiaryGetDto {
-    private Long diaryId;
-    private Long placeId;
+public class DiaryDetailDto {
     private String userName;
     private String title;
     private String date;
+    private String weather;
     private String content;
-    private String imageUrl;
+    private List<String> imageUrl;
 }
