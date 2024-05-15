@@ -2,19 +2,21 @@ package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.*;
-import NotFound.picnic.enums.Role;
-import NotFound.picnic.enums.State;
+import NotFound.picnic.enums.*;
 import NotFound.picnic.repository.*;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -70,6 +72,7 @@ public class ManageService {
 
         return "공지 작성 완료";
     }
+    
 
     public String ApproveApproval(Long approvalId, ApproveDto approveDto){
         Approval approval = approvalRepository.findById(approvalId).orElseThrow();
@@ -141,9 +144,9 @@ public class ManageService {
     }
 
     private void saveEventImages(List<MultipartFile> images, Event event) {
-        if (images != null) {
             images.forEach(image -> {
                 try {
+                    if (!image.isEmpty()){
                     String url = s3Upload.uploadFiles(image, "event");
                     EventImage img = EventImage.builder()
                             .event(event)
@@ -151,11 +154,13 @@ public class ManageService {
                             .build();
 
                     eventImageRepository.save(img);
+                    }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+
             });
-        }
+        
     }
 
     public String DeleteAnnouncement(Long eventId, Principal principal) {
@@ -205,4 +210,109 @@ public class ManageService {
 
         return "권한 변경 완료";
     }
+
+    public String UpdateEvent(EventCreateDto eventCreateDto, Long eventId, Principal principal, int Type) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        
+
+        Event event =eventRepository.findByEventIdAndType(eventId,CheckEventType(Type)).orElseThrow();
+
+        
+        if (event.getMember() != member)
+            throw new ValidationException();
+
+        if (eventCreateDto.getTitle() != null) event.setTitle(eventCreateDto.getTitle());
+        if (eventCreateDto.getContent() != null) event.setContent(eventCreateDto.getContent());
+        //관리자가 LocationId를 수정시 해당 event와 event와 같은 locationId를 가진 member(COMPANY)도 수정합니다.
+        if (eventCreateDto.getLocationId() !=null) {
+            Member memberWhoCompany =memberRepository.findById(event.getLocation().getLocationId()).orElseThrow();
+            Location location =locationRepository.findById(eventCreateDto.getLocationId()).orElseThrow();
+            event.setLocation(location);
+            
+            memberWhoCompany.setLocationId(eventCreateDto.getLocationId());
+        }
+        eventRepository.save(event);
+
+        if (EventCreateDtoImagesCheck(eventCreateDto)) {
+
+           
+            
+            List<EventImage> eventImageList = eventImageRepository.findAllByEvent(event);
+
+            if (EventImageListCheck(eventImageList))
+                eventImageRepository.deleteAll(eventImageList);
+                
+            
+            
+
+           saveEventImages(eventCreateDto.getImages(), event);
+        }
+        
+        
+
+       return returnMessage(event.getType(),"수정");
+    }
+
+    public String DeleteEvent(Long eventId, Principal principal,int Type) {
+        Event event = eventRepository.findById(eventId).orElseThrow();
+
+        List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
+        eventImageRepository.deleteAll(eventList);
+        eventRepository.delete(event);
+        return returnMessage(event.getType(),"삭제");
+    }
+
+    
+    public EventType CheckEventType(int Type){
+
+        EventType eventType;
+        if (Type ==1){
+            eventType = EventType.ANNOUNCEMENT;
+        }
+        else if (Type == 2){
+            eventType = EventType.PROMOTION;
+        }
+        else {
+            eventType=EventType.EVENT;
+        }
+
+        return eventType;
+    }
+
+    public boolean EventCreateDtoImagesCheck(EventCreateDto eventCreateDto){
+        List<MultipartFile> images = eventCreateDto.getImages();
+         
+        boolean anyImageNotEmpty = images.stream().anyMatch(image -> !image.isEmpty());
+
+        return anyImageNotEmpty;
+    }
+
+    public boolean EventImageListCheck(List<EventImage> eventImageList){
+        
+        boolean anyImageNotEmpty = eventImageList.stream().anyMatch(image -> !image.getImageUrl().isEmpty());
+
+        return anyImageNotEmpty;
+    }
+
+    public String returnMessage(EventType eventType, String propose){
+        String message="이벤트";
+
+       if(eventType==EventType.EVENT){
+           ;
+       }
+
+       else if(eventType==EventType.PROMOTION){
+           message="홍보자료";
+       }
+       else if(eventType==EventType.ANNOUNCEMENT){
+           message="공지사항";
+       }
+
+
+
+       String returnMessage = String.format("%s(이)가 성공적으로 %s 되었습니다", message,propose);
+
+       return returnMessage;
+
+   }
 }

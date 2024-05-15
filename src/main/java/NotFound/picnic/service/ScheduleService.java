@@ -127,12 +127,12 @@ public class ScheduleService {
                         .locationName(place.getLocation().getName())
                         .date(place.getDate())
                         .time(place.getTime())
-                        .recordId(diary.getDiaryId())
+                        .diaryId(diary.getDiaryId())
                         .title(diary.getTitle())
                         .content(diary.getContent());
 
                 // diary에 매칭되는 이미지 조회
-                Optional<Image> optionalImage = imageRepository.findImageUrlByDiary_DiaryId(diary.getDiaryId());
+                Optional<Image> optionalImage = imageRepository.findTopImageUrlByDiary_DiaryId(diary.getDiaryId());
                 // 이미지가 존재하면 imageUrl 설정
                 String imageUrl = optionalImage.map(Image::getImageUrl).orElse(null);
                 optionalImage.ifPresentOrElse(
@@ -232,7 +232,7 @@ public class ScheduleService {
     public List<MyScheduleGetDto> GetSchedulesInMyPage (Principal principal) {
         Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
 
-        List<Schedule> scheduleList = scheduleRepository.findAllByMember(member);
+        List<Schedule> scheduleList = scheduleRepository.findAllByMemberOrderByStartDateDesc(member);
 
         return scheduleList.stream().map(schedule -> {
             Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
