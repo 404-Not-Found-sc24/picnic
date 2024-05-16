@@ -127,6 +127,8 @@ public class ScheduleService {
                         .locationName(place.getLocation().getName())
                         .date(place.getDate())
                         .time(place.getTime())
+                        .latitude(place.getLocation().getLatitude())
+                        .longitude(place.getLocation().getLongitude())
                         .diaryId(diary.getDiaryId())
                         .title(diary.getTitle())
                         .content(diary.getContent());
