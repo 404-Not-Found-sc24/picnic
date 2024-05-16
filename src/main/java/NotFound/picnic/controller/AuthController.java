@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import org.apache.coyote.BadRequestException;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -78,5 +80,13 @@ public class AuthController {
     public ResponseEntity<String> deleteUser(Principal principal) {
         String res = authService.deleteUser(principal);
         return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @GetMapping("/duplicate")
+    public ResponseEntity<String> duplicateEmail (@RequestParam(name="email") String email) throws BadRequestException {
+        if (authService.duplicateEmail(email))
+            return ResponseEntity.status(HttpStatus.OK).body("사용 가능한 아이디입니다");
+        else
+            throw new BadRequestException("이미 존재하는 아이디입니다");
     }
 }
