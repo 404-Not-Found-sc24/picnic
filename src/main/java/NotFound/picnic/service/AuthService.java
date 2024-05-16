@@ -29,6 +29,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder encoder;
     private final BCryptPasswordEncoder BCryptEncoder;
+    private final S3Upload s3Upload;
 
     public LoginResponseDto login(LoginRequestDto dto) {
         String email = dto.getEmail();
@@ -128,5 +129,35 @@ public class AuthService {
                         .role(member.getRole())
                         .imageUrl(member.getImageUrl())
                         .build();
+    }
+
+    @Transactional
+    public String updateUser(UserUpdateDto userUpdateDto, Principal principal) throws IOException {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        if (userUpdateDto.getName() != null) member.setName(userUpdateDto.getName());
+        if (userUpdateDto.getNickname() != null && !userUpdateDto.getNickname().equals(member.getNickname())) {
+            if (memberRepository.existsMemberByNickname(userUpdateDto.getNickname()))
+                throw new ValidationException();
+            member.setNickname(userUpdateDto.getNickname());
+        }
+        if (userUpdateDto.getPhone() != null) member.setPhone(userUpdateDto.getPhone());
+        if (userUpdateDto.getImage() != null) {
+            String imageUrl = s3Upload.uploadFiles(userUpdateDto.getImage(), "user");
+            member.setImageUrl(imageUrl);
+        }
+        memberRepository.save(member);
+
+        return "수정 완료";
+    }
+
+    @Transactional
+    public String deleteUser (Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        memberRepository.delete(member);
+        return "삭제 완료";
+    }
+
+    public boolean duplicateEmail (String email) {
+        return !memberRepository.existsMemberByEmail(email);
     }
 }

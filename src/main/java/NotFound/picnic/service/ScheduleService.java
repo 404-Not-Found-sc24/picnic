@@ -232,7 +232,7 @@ public class ScheduleService {
     public List<MyScheduleGetDto> GetSchedulesInMyPage (Principal principal) {
         Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
 
-        List<Schedule> scheduleList = scheduleRepository.findAllByMember(member);
+        List<Schedule> scheduleList = scheduleRepository.findAllByMemberOrderByStartDateDesc(member);
 
         return scheduleList.stream().map(schedule -> {
             Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
