@@ -81,22 +81,13 @@ public class EventService {
 
     public String createEvent(EventCreateDto eventCreateDto, Principal principal){
 
-        Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
-
-        if (optionalMember.isEmpty()) {
-            throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
-        }
-        Member member = optionalMember.get();
-        if(Role.USER==member.getRole()){
-            return "You are not allowed";
-        }
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
 
         
         if(EventType.ANNOUNCEMENT==eventCreateDto.getEventType()){
             return "You are not allowed";
         }
-        Optional<Location> optionalLocation = locationRepository.findById(eventCreateDto.getLocationId());
-        Location location=optionalLocation.orElseThrow(() -> new IllegalArgumentException("해당하는 장소를 찾을 수 없습니다."));
+        Location location = locationRepository.findById(member.getLocationId()).orElseThrow(() -> new IllegalArgumentException("해당하는 장소를 찾을 수 없습니다."));
         Event event = Event.builder()
         .title(eventCreateDto.getTitle())
         .content(eventCreateDto.getContent())
@@ -111,22 +102,7 @@ public class EventService {
         
         List<MultipartFile> images = eventCreateDto.getImages();
          
-             images.forEach(image -> {
-                try {
-                    if (!image.isEmpty()){
-                    String url = s3Upload.uploadFiles(image, "event");
-                    EventImage img = EventImage.builder()
-                            .event(event)
-                            .imageUrl(url)
-                            .build();
-
-                    eventImageRepository.save(img);
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            });
+        saveEventImages(images,event);
             
         
 
@@ -134,7 +110,7 @@ public class EventService {
 
     }
 
-    public EventType CheckEventType(int Type){
+    private EventType CheckEventType(int Type){
 
         EventType eventType;
         if (Type ==1){
@@ -150,7 +126,7 @@ public class EventService {
         return eventType;
     }
 
-    public String returnMessage(EventType eventType){
+    private String returnMessage(EventType eventType){
          String message="이벤트";
 
         if(eventType==EventType.EVENT){
@@ -170,6 +146,26 @@ public class EventService {
         return returnMessage;
 
     }
+
+    private void saveEventImages(List<MultipartFile> images, Event event) {
+        images.forEach(image -> {
+            try {
+                if (!image.isEmpty()){
+                String url = s3Upload.uploadFiles(image, "event");
+                EventImage img = EventImage.builder()
+                        .event(event)
+                        .imageUrl(url)
+                        .build();
+
+                eventImageRepository.save(img);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        });
+    
+}
     
     
 
