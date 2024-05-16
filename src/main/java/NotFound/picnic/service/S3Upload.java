@@ -55,7 +55,7 @@ public class S3Upload {
 				.withCannedAcl(CannedAccessControlList.PublicRead)  // PublicRead 권한으로 업로드 됨
 		);
 
-		return fileName;
+		return amazonS3Client.getUrl(bucket, fileName).toString();
 	}
 
 	//로컬에 있는 이미지 삭제
