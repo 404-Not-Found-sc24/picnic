@@ -57,8 +57,7 @@ public class EventController {
     }
     
 
-
-    @PreAuthorize("isAuthenticated")
+    @PreAuthorize("hasRole('COMPANY')")
     @PostMapping()
     public ResponseEntity<String> creatEvent(EventCreateDto eventCreateDto, Principal principal)throws IOException{
         String Response = eventService.createEvent(eventCreateDto, principal);
