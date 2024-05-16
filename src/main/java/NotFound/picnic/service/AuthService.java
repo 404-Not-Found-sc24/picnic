@@ -156,4 +156,8 @@ public class AuthService {
         memberRepository.delete(member);
         return "삭제 완료";
     }
+
+    public boolean duplicateEmail (String email) {
+        return !memberRepository.existsMemberByEmail(email);
+    }
 }
