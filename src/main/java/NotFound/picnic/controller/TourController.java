@@ -65,6 +65,12 @@ public class TourController {
         return ResponseEntity.ok().body(diaryGetDtoList);
     }
 
+    @GetMapping("/diary/{diaryId}")
+    public ResponseEntity<DiaryDetailDto> getDiaryDetail(@PathVariable(name="diaryId") Long diaryId){
+        DiaryDetailDto diaryDetailDto = tourService.GetDiaryDetail(diaryId);
+        return ResponseEntity.ok().body(diaryDetailDto);
+    }
+
     @GetMapping("/schedules/{locationId}")
     public ResponseEntity<List<ScheduleGetDto>> getSchedulesByLocationId(@PathVariable(name="locationId") Long locationId) {
         List<ScheduleGetDto> scheduleGetDtoList = tourService.GetSchedulesByLocationId(locationId);

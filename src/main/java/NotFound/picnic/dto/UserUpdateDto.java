@@ -1,17 +1,13 @@
 package NotFound.picnic.dto;
 
 import NotFound.picnic.enums.Role;
-import lombok.Builder;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
-@Builder
-public class UserGetDto {
-    private Long memberId;
-    private String email;
+public class UserUpdateDto {
     private String name;
     private String nickname;
     private String phone;
-    private Role role;
-    private String imageUrl;
+    private MultipartFile image;
 }

@@ -282,6 +282,7 @@ public class TourService {
                         return DiaryGetDto.builder()
                                 .diaryId(diary.get().getDiaryId())
                                 .placeId(place.getPlaceId())
+                                .userName(schedule.getMember().getName())
                                 .title(diary.get().getTitle())
                                 .date(place.getDate())
                                 .content(diary.get().getContent())
@@ -294,6 +295,20 @@ public class TourService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
         ).orElse(Collections.emptyList());
+    }
+
+    public DiaryDetailDto GetDiaryDetail(Long diaryId){
+        Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+        List<Image> images = imageRepository.findAllByDiary(diary);
+
+        return DiaryDetailDto.builder()
+                .userName(diary.getPlace().getSchedule().getMember().getName())
+                .title(diary.getTitle())
+                .date(diary.getPlace().getDate())
+                .weather(diary.getWeather())
+                .content(diary.getContent())
+                .imageUrl(images.stream().map(Image::getImageUrl).collect(Collectors.toList()))
+                .build();
     }
 
     public List<ScheduleGetDto> GetSchedulesByLocationId(Long locationId) {
