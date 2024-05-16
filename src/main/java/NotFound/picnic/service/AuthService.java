@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -159,5 +160,17 @@ public class AuthService {
 
     public boolean duplicateEmail (String email) {
         return !memberRepository.existsMemberByEmail(email);
+    }
+
+    @Transactional
+    public String changePassword (PasswordDto passwordDto, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        if (!BCryptEncoder.matches(passwordDto.getPassword(), member.getPassword())) {
+            throw new ValidationException();
+        }
+        String newPassword = BCryptEncoder.encode(passwordDto.getNewPassword());
+        member.setPassword(newPassword);
+        memberRepository.save(member);
+        return "비밀번호 변경 완료";
     }
 }
