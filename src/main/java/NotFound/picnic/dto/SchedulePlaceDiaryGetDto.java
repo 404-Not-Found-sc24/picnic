@@ -19,4 +19,6 @@ public class SchedulePlaceDiaryGetDto {
     private String title;
     private String content;
     private String imageUrl;
+    private Double latitude;
+    private Double longitude;
 }
