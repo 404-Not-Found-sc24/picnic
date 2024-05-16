@@ -149,4 +149,11 @@ public class AuthService {
 
         return "수정 완료";
     }
+
+    @Transactional
+    public String deleteUser (Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        memberRepository.delete(member);
+        return "삭제 완료";
+    }
 }

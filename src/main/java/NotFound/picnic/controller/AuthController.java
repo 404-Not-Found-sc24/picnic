@@ -72,4 +72,11 @@ public class AuthController {
         String res = authService.updateUser(userUpdateDto, principal);
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
+
+    @DeleteMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> deleteUser(Principal principal) {
+        String res = authService.deleteUser(principal);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
 }
