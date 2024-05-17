@@ -122,7 +122,7 @@ public class ScheduleService {
             return diaryList.stream().map(diary -> {
                 // SchedulePlaceDiaryGetDto 빌더 생성
                 SchedulePlaceDiaryGetDto.SchedulePlaceDiaryGetDtoBuilder builder = SchedulePlaceDiaryGetDto.builder()
-                        .placeID(place.getPlaceId())
+                        .placeId(place.getPlaceId())
                         .locationId(place.getLocation().getLocationId())
                         .locationName(place.getLocation().getName())
                         .date(place.getDate())
