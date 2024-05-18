@@ -151,6 +151,7 @@ public class TourService {
         Location location = locationRepository.findByLocationId(locationId).orElseThrow();
         //division check
         String division = location.getDivision();
+        List<LocationImage> images = locationImageRepository.findAllByLocation(location);
         //location dto create
         LocationDetailDto locationDetail = LocationDetailDto.builder()
                 .name(location.getName())
@@ -160,6 +161,7 @@ public class TourService {
                 .longitude(location.getLongitude())
                 .division(location.getDivision())
                 .phone(location.getPhone())
+                .imageUrls(images.stream().map(LocationImage::getImageUrl).collect(Collectors.toList()))
                 .build();
 
         //Accommodation
