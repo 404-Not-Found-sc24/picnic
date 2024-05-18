@@ -10,13 +10,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SchedulePlaceDiaryGetDto {
-    private Long placeID;
+    private Long placeId;
     private Long locationId;
     private String locationName;
     private String date;
     private String time;
-    private Long recordId;
+    private Long diaryId;
     private String title;
     private String content;
     private String imageUrl;
+    private Double latitude;
+    private Double longitude;
 }
