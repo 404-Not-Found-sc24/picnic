@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -122,7 +123,7 @@ public class ScheduleService {
             return diaryList.stream().map(diary -> {
                 // SchedulePlaceDiaryGetDto 빌더 생성
                 SchedulePlaceDiaryGetDto.SchedulePlaceDiaryGetDtoBuilder builder = SchedulePlaceDiaryGetDto.builder()
-                        .placeID(place.getPlaceId())
+                        .placeId(place.getPlaceId())
                         .locationId(place.getLocation().getLocationId())
                         .locationName(place.getLocation().getName())
                         .date(place.getDate())
@@ -260,6 +261,18 @@ public class ScheduleService {
                     .imageUrl(imageUrl)
                     .build();
         }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public String deleteSchedule (Long scheduleId, Principal principal) throws IOException {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
+
+        if (schedule.getMember() != member)
+            throw new IOException();
+
+        scheduleRepository.delete(schedule);
+        return "일정 삭제 완료";
     }
 
 }

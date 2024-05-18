@@ -97,4 +97,10 @@ public class AuthController {
         String res = authService.changePassword(passwordDto, principal);
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
+
+    @PostMapping("/reissue-password")
+    public ResponseEntity<String> reissuePassword (@RequestBody ReissuePasswordDto reissuePasswordDto) throws Exception {
+        String res = authService.reissuePassword(reissuePasswordDto);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
 }

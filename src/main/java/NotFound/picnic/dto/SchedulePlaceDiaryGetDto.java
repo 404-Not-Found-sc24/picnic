@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SchedulePlaceDiaryGetDto {
-    private Long placeID;
+    private Long placeId;
     private Long locationId;
     private String locationName;
     private String date;

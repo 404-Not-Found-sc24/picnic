@@ -58,4 +58,11 @@ public class ScheduleController {
         List<MyScheduleGetDto> scheduleGetDtos = scheduleService.GetSchedulesInMyPage(principal);
         return ResponseEntity.ok().body(scheduleGetDtos);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/{scheduleId}")
+    public ResponseEntity<String> deleteSchedule (@PathVariable(name="scheduleId") Long scheduleId, Principal principal) throws IOException {
+        String res = scheduleService.deleteSchedule(scheduleId, principal);
+        return ResponseEntity.ok().body(res);
+    }
 }
