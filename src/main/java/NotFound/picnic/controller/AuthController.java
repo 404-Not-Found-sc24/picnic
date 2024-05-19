@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.apache.coyote.BadRequestException;
+import org.apache.coyote.Response;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
@@ -88,5 +89,18 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.OK).body("사용 가능한 아이디입니다");
         else
             throw new BadRequestException("이미 존재하는 아이디입니다");
+    }
+
+    @PatchMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> changePassword (@RequestBody PasswordDto passwordDto, Principal principal) {
+        String res = authService.changePassword(passwordDto, principal);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @PostMapping("/reissue-password")
+    public ResponseEntity<String> reissuePassword (@RequestBody ReissuePasswordDto reissuePasswordDto) throws Exception {
+        String res = authService.reissuePassword(reissuePasswordDto);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 }

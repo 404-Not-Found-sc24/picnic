@@ -7,7 +7,10 @@ import NotFound.picnic.dto.*;
 import NotFound.picnic.repository.MemberRepository;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,9 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -30,6 +36,7 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final BCryptPasswordEncoder BCryptEncoder;
     private final S3Upload s3Upload;
+    private final JavaMailSender javaMailSender;
 
     public LoginResponseDto login(LoginRequestDto dto) {
         String email = dto.getEmail();
@@ -159,5 +166,44 @@ public class AuthService {
 
     public boolean duplicateEmail (String email) {
         return !memberRepository.existsMemberByEmail(email);
+    }
+
+    @Transactional
+    public String changePassword (PasswordDto passwordDto, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        if (!BCryptEncoder.matches(passwordDto.getPassword(), member.getPassword())) {
+            throw new ValidationException();
+        }
+        String newPassword = BCryptEncoder.encode(passwordDto.getNewPassword());
+        member.setPassword(newPassword);
+        memberRepository.save(member);
+        return "비밀번호 변경 완료";
+    }
+
+    @Transactional
+    public String reissuePassword(ReissuePasswordDto reissuePasswordDto) throws Exception {
+        String newPw = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        Member member = memberRepository.findMemberByEmailAndPhone(reissuePasswordDto.getEmail(), reissuePasswordDto.getPhone());
+        if (member == null)
+            throw new Exception();
+
+        member.setPassword(BCryptEncoder.encode(newPw));
+
+        try {
+            SMTPMsgDto smtpMsgDto = SMTPMsgDto.builder()
+                    .address(member.getEmail())
+                    .title(member.getNickname() + "님의 [나들이] 임시비밀번호 안내 이메일 입니다.")
+                    .message("안녕하세요. [나들이] 임시 비밀번호 안내 관련 이메일 입니다. \n" + "[" + member.getNickname() + "]" + "님의 임시 비밀번호는 "
+                            + newPw + " 입니다.").build();
+            SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+            simpleMailMessage.setTo(smtpMsgDto.getAddress());
+            simpleMailMessage.setSubject(smtpMsgDto.getTitle());
+            simpleMailMessage.setText(smtpMsgDto.getMessage());
+            javaMailSender.send(simpleMailMessage);
+        } catch (Exception exception) {
+            log.error("PW Reissue ::{} ", exception.getMessage());
+            throw new Exception();
+        }
+        return "비밀번호 재설정 완료";
     }
 }
