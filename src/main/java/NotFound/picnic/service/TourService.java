@@ -300,6 +300,7 @@ public class TourService {
     public DiaryDetailDto GetDiaryDetail(Long diaryId){
         Diary diary = diaryRepository.findById(diaryId).orElseThrow();
         List<Image> images = imageRepository.findAllByDiary(diary);
+        Place place = placeRepository.findByDiary_DiaryId(diaryId);
 
         return DiaryDetailDto.builder()
                 .userName(diary.getPlace().getSchedule().getMember().getName())
@@ -307,6 +308,8 @@ public class TourService {
                 .date(diary.getPlace().getDate())
                 .weather(diary.getWeather())
                 .content(diary.getContent())
+                .longitude(place.getLocation().getLongitude())
+                .latitude(place.getLocation().getLatitude())
                 .imageUrl(images.stream().map(Image::getImageUrl).collect(Collectors.toList()))
                 .build();
     }
