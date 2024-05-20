@@ -13,4 +13,6 @@ public interface ApprovalImageRepository extends JpaRepository<ApprovalImage, Lo
     @NonNull
     List <ApprovalImage> findAll();
 
+    Optional<ApprovalImage> findApprovalImageByApproval_ApprovalId(Long approvalId);
+
 }
