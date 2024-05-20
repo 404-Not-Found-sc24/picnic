@@ -51,18 +51,13 @@ public class EventService {
 
     public EventDetailGetDto GetEventDetail(Long eventId,int Type){
         
-        List<Event> events =eventRepository.findAllByType(CheckEventType(Type));
-        Event event = events.stream()
-        .filter(e -> e.getEventId().equals(eventId))
-        .findFirst()
-        .orElseThrow(() -> new RuntimeException("해당 정보를 찾을 수 없습니다."));
+        Event event = eventRepository.findById(eventId).orElseThrow();
 
-        List<EventImageDto> imageDtos = event.getEventImageList().stream()
-                                          .map(image -> EventImageDto.builder()
-                                          .imageUrl(image.getImageUrl())
-                                          .build())
-                                          .collect(Collectors.toList());
-        
+        Optional<EventImage> eventImage = eventImageRepository.findEventImageByEvent_EventId(eventId);
+        String url = "";
+        if(eventImage.isPresent()){
+            url = eventImage.get().getImageUrl();
+        }
 
         return EventDetailGetDto.builder()
                                     .eventId(event.getEventId())
@@ -72,7 +67,7 @@ public class EventService {
                                     .createdDate(event.getCreateAt())
                                     .updatedDate(event.getModifiedAt())
                                     .memberName(event.getMember().getName())
-                                    .images(imageDtos)
+                                    .imageUrl(url)
                                     .build();
        
     }
