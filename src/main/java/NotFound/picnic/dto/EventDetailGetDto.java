@@ -16,7 +16,7 @@ public class EventDetailGetDto {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
     private String memberName;
-    private List<EventImageDto> images;
+    private String imageUrl;
 
 
 
