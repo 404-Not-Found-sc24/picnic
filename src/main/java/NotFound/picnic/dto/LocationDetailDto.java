@@ -2,6 +2,8 @@ package NotFound.picnic.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,6 +16,7 @@ public class LocationDetailDto {
     private Double longitude;
     private String division;
     private String phone;
+    private List<String> imageUrls;
 
     private Accommodation accommodation;
     private Culture culture;
