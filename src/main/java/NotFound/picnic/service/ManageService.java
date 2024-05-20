@@ -28,10 +28,12 @@ import java.util.stream.Collectors;
 public class ManageService {
 
     private final ApprovalRepository approvalRepository;
+    private final ApprovalImageRepository approvalImageRepository;
     private final EventRepository eventRepository;
     private final EventImageRepository eventImageRepository;
     private final MemberRepository memberRepository;
     private final LocationRepository locationRepository;
+    private final LocationImageRepostiory locationImageRepostiory;
     private final S3Upload s3Upload;
 
     public List<ApprovalDto> GetApprovalList(Principal principal){
@@ -104,6 +106,17 @@ public class ManageService {
                 .phone(approval.getPhone())
                 .build();
         locationRepository.save(location);
+
+        Optional<ApprovalImage> approvalImage = approvalImageRepository.findApprovalImageByApproval_ApprovalId(approvalId);
+        if(approvalImage.isEmpty()){
+            return "장소 추가 완료";
+        }
+        ApprovalImage image = approvalImage.get();
+        LocationImage locationImage = LocationImage.builder()
+                .imageUrl(image.getImageUrl())
+                .location(location)
+                .build();
+        locationImageRepostiory.save(locationImage);
 
         return "장소 추가 완료";
     }
