@@ -2,11 +2,11 @@ package NotFound.picnic.service;
 
 import NotFound.picnic.auth.JwtUtil;
 import NotFound.picnic.domain.Member;
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.auth.*;
+import NotFound.picnic.dto.manage.UserGetDto;
 import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.repository.MemberRepository;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

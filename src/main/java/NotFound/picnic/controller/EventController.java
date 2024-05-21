@@ -1,6 +1,8 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.event.EventCreateDto;
+import NotFound.picnic.dto.event.EventDetailGetDto;
+import NotFound.picnic.dto.event.EventGetDto;
 import NotFound.picnic.enums.EventType;
 import NotFound.picnic.service.EventService;
 
@@ -8,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.List;
 

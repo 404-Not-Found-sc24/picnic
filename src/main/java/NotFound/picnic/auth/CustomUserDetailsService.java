@@ -1,14 +1,13 @@
 package NotFound.picnic.auth;
 
 import NotFound.picnic.domain.Member;
-import NotFound.picnic.dto.UserInfoDto;
+import NotFound.picnic.dto.auth.UserInfoDto;
 import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

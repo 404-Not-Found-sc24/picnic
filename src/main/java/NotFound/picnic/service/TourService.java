@@ -1,7 +1,7 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.tour.*;
 import NotFound.picnic.enums.State;
 import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.exception.ErrorCode;
@@ -9,16 +9,10 @@ import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
