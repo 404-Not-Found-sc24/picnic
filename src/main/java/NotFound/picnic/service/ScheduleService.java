@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -272,14 +273,17 @@ public class ScheduleService {
                     .imageUrl(imageUrl)
                     .build();
 
-            LocalDate startDate = LocalDate.parse(schedule.getStartDate(), formatter);
-            LocalDate endDate = LocalDate.parse(schedule.getEndDate(), formatter);
+            ZoneId zoneId = ZoneId.of("Asia/Seoul");
+            LocalDate startDate = LocalDate.parse(schedule.getStartDate(), formatter.withZone(zoneId));
+            LocalDate endDate = LocalDate.parse(schedule.getEndDate(), formatter.withZone(zoneId));
+            LocalDate today = LocalDate.now(zoneId);
 
-            if (startDate.isAfter(now)) {
+
+            if (startDate.isAfter(today)) {
                 beforeTravel.add(dto);
-            } else if (!startDate.isAfter(now) && !endDate.isBefore(now)) {
+            } else if (!startDate.isAfter(today) && !endDate.isBefore(today)) {
                 traveling.add(dto);
-            } else if (endDate.isBefore(now)) {
+            } else if (endDate.isBefore(today)) {
                 afterTravel.add(dto);
             }
         });
