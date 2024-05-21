@@ -1,17 +1,13 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.auth.*;
+import NotFound.picnic.dto.manage.UserGetDto;
 import NotFound.picnic.service.AuthService;
 import NotFound.picnic.service.S3Upload;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.apache.coyote.BadRequestException;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -30,14 +26,14 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     public ResponseEntity<LoginResponseDto> getMemberProfile(
-            @Valid @RequestBody LoginRequestDto loginRequestDto
+            @Valid @RequestBody NotFound.picnic.dto.auth.LoginRequestDto loginRequestDto
             ) {
         LoginResponseDto token = this.authService.login(loginRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(token);
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<Long> addMember(@Valid @RequestBody SignUpDto signUpDto) throws IOException {
+    public ResponseEntity<Long> addMember(@Valid @RequestBody SignUpDto signUpDto) {
         return authService.join(signUpDto);
     }
 
@@ -88,5 +84,18 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.OK).body("사용 가능한 아이디입니다");
         else
             throw new BadRequestException("이미 존재하는 아이디입니다");
+    }
+
+    @PatchMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> changePassword (@RequestBody PasswordDto passwordDto, Principal principal) {
+        String res = authService.changePassword(passwordDto, principal);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
+    }
+
+    @PostMapping("/reissue-password")
+    public ResponseEntity<String> reissuePassword (@RequestBody ReissuePasswordDto reissuePasswordDto) throws Exception {
+        String res = authService.reissuePassword(reissuePasswordDto);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 }

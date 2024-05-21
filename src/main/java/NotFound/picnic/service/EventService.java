@@ -1,19 +1,21 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
+import NotFound.picnic.dto.event.EventCreateDto;
+import NotFound.picnic.dto.event.EventDetailGetDto;
+import NotFound.picnic.dto.event.EventGetDto;
+import NotFound.picnic.dto.event.EventImageDto;
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.repository.*;
-import NotFound.picnic.dto.*;
 import NotFound.picnic.enums.*;
 
 import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -30,10 +32,10 @@ public class EventService {
     private final MemberRepository memberRepository;
     private final S3Upload s3Upload;
 
-    public List<EventGetDto> GetEvents(int Type) throws UnsupportedEncodingException{
+    public List<EventGetDto> GetEvents(EventType type) {
         
         
-        List<Event> events =eventRepository.findAllByType(CheckEventType(Type));
+        List<Event> events =eventRepository.findAllByType(type);
 
         events.sort(Comparator.comparing(Event::getCreateAt).reversed());
         
@@ -49,20 +51,22 @@ public class EventService {
                 
     }
 
-    public EventDetailGetDto GetEventDetail(Long eventId,int Type){
-        
-        List<Event> events =eventRepository.findAllByType(CheckEventType(Type));
-        Event event = events.stream()
-        .filter(e -> e.getEventId().equals(eventId))
-        .findFirst()
-        .orElseThrow(() -> new RuntimeException("해당 정보를 찾을 수 없습니다."));
+    public EventDetailGetDto GetEventDetail(Long eventId){
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
 
         List<EventImageDto> imageDtos = event.getEventImageList().stream()
                                           .map(image -> EventImageDto.builder()
                                           .imageUrl(image.getImageUrl())
                                           .build())
                                           .collect(Collectors.toList());
-        
+
+
+        Optional<EventImage> eventImage = eventImageRepository.findEventImageByEvent_EventId(eventId);
+        String url = "";
+        if(eventImage.isPresent()){
+            url = eventImage.get().getImageUrl();
+        }
 
         return EventDetailGetDto.builder()
                                     .eventId(event.getEventId())
@@ -72,7 +76,7 @@ public class EventService {
                                     .createdDate(event.getCreateAt())
                                     .updatedDate(event.getModifiedAt())
                                     .memberName(event.getMember().getName())
-                                    .images(imageDtos)
+                                    .imageUrl(url)
                                     .build();
        
     }
@@ -81,22 +85,13 @@ public class EventService {
 
     public String createEvent(EventCreateDto eventCreateDto, Principal principal){
 
-        Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        if (optionalMember.isEmpty()) {
-            throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
-        }
-        Member member = optionalMember.get();
-        if(Role.USER==member.getRole()){
-            return "You are not allowed";
-        }
 
-        
-        if(EventType.ANNOUNCEMENT==eventCreateDto.getEventType()){
-            return "You are not allowed";
-        }
-        Optional<Location> optionalLocation = locationRepository.findById(eventCreateDto.getLocationId());
-        Location location=optionalLocation.orElseThrow(() -> new IllegalArgumentException("해당하는 장소를 찾을 수 없습니다."));
+        Location location = locationRepository.findById(member.getLocationId())
+                .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
+
         Event event = Event.builder()
         .title(eventCreateDto.getTitle())
         .content(eventCreateDto.getContent())
@@ -110,47 +105,16 @@ public class EventService {
 
         
         List<MultipartFile> images = eventCreateDto.getImages();
-         
-             images.forEach(image -> {
-                try {
-                    if (!image.isEmpty()){
-                    String url = s3Upload.uploadFiles(image, "event");
-                    EventImage img = EventImage.builder()
-                            .event(event)
-                            .imageUrl(url)
-                            .build();
 
-                    eventImageRepository.save(img);
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            });
-            
-        
+        if (images != null)
+            saveEventImages(images,event);
 
         return returnMessage(eventCreateDto.getEventType());
 
     }
 
-    public EventType CheckEventType(int Type){
 
-        EventType eventType;
-        if (Type ==1){
-            eventType = EventType.ANNOUNCEMENT;
-        }
-        else if (Type == 2){
-            eventType = EventType.PROMOTION;
-        }
-        else {
-            eventType=EventType.EVENT;
-        }
-
-        return eventType;
-    }
-
-    public String returnMessage(EventType eventType){
+    private String returnMessage(EventType eventType){
          String message="이벤트";
 
         if(eventType==EventType.EVENT){
@@ -170,6 +134,24 @@ public class EventService {
         return returnMessage;
 
     }
+
+    private void saveEventImages(List<MultipartFile> images, Event event) {
+        images.forEach(image -> {
+            try {
+                String url = s3Upload.uploadFiles(image, "event");
+                EventImage img = EventImage.builder()
+                        .event(event)
+                        .imageUrl(url)
+                        .build();
+
+                eventImageRepository.save(img);
+            } catch (Exception e) {
+                throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
+            }
+
+        });
+    
+}
     
     
 

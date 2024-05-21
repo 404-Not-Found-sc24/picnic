@@ -1,6 +1,11 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.event.AnnounceCreateDto;
+import NotFound.picnic.dto.event.EventCreateDto;
+import NotFound.picnic.dto.manage.ApprovalDto;
+import NotFound.picnic.dto.manage.ApproveDto;
+import NotFound.picnic.dto.manage.UserGetDto;
+import NotFound.picnic.dto.manage.UserRoleChangeDto;
 import NotFound.picnic.service.ManageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController
@@ -79,14 +83,14 @@ public class ManageController {
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/promotion/{eventId}")
     public ResponseEntity<String> updatePromotion(EventCreateDto eventCreateDto, @PathVariable(name="eventId") Long eventId, Principal principal) {
-        String res = manageService.UpdateEvent(eventCreateDto, eventId, principal,2);
+        String res = manageService.UpdateEvent(eventCreateDto, eventId, principal);
         return ResponseEntity.ok().body(res);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/promotion/{eventId}")
-    public ResponseEntity<String> deletePromotion(@PathVariable(name="eventId") Long eventId, Principal principal) {
-        String res = manageService.DeleteEvent(eventId, principal,2);
+    public ResponseEntity<String> deletePromotion(@PathVariable(name="eventId") Long eventId) {
+        String res = manageService.DeleteEvent(eventId);
         return ResponseEntity.ok().body(res);
     }
     
