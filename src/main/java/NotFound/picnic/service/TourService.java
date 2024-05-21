@@ -3,6 +3,8 @@ package NotFound.picnic.service;
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.*;
 import NotFound.picnic.enums.State;
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.repository.*;
 import NotFound.picnic.domain.City;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +47,7 @@ public class TourService {
     private final S3Upload s3Upload;
 
 
-    public List<LocationGetDto> GetLocations(String city, String keyword, int lastIdx) throws UnsupportedEncodingException {
+    public List<LocationGetDto> GetLocations(String city, String keyword, int lastIdx) {
         Optional<List<Location>> locations;
         if (city != null) {
             locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
@@ -113,11 +115,12 @@ public class TourService {
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
         if (optionalMember.isEmpty()) {
-            throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
         Member member = optionalMember.get();
         // schedule Id validate
-        Schedule scheduleOld = scheduleRepository.findById(scheduleId).orElseThrow();
+        Schedule scheduleOld = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         // Duplicate schedule
         Schedule scheduleNew = Schedule.builder()
@@ -148,7 +151,8 @@ public class TourService {
     public LocationDetailDto GetLocationDetail(Long locationId) {
 
         //location check
-        Location location = locationRepository.findByLocationId(locationId).orElseThrow();
+        Location location = locationRepository.findByLocationId(locationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
         //division check
         String division = location.getDivision();
         List<LocationImage> images = locationImageRepository.findAllByLocation(location);
@@ -254,8 +258,10 @@ public class TourService {
     public String AddPlaceToSchedule(ScheduleAddPlaceDto scheduleAddPlaceDto, Principal principal) {
 
         //Validation
-        Schedule schedule = scheduleRepository.findByScheduleId(scheduleAddPlaceDto.getScheduleId()).orElseThrow();
-        Location location = locationRepository.findByLocationId(scheduleAddPlaceDto.getLocationId()).orElseThrow();
+        Schedule schedule = scheduleRepository.findByScheduleId(scheduleAddPlaceDto.getScheduleId())
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
+        Location location = locationRepository.findByLocationId(scheduleAddPlaceDto.getLocationId())
+                .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
 
         //Place add
         Place place = Place.builder()
@@ -270,12 +276,12 @@ public class TourService {
     }
 
     public List<DiaryGetDto> GetDiaries(Long locationId) {
-      
         Optional<List<Place>> placeList = placeRepository.findAllByLocation_LocationId(locationId);
 
         return placeList.map(places -> places.stream()
                 .map(place -> {
-                    Schedule schedule = scheduleRepository.findById(place.getSchedule().getScheduleId()).orElseThrow();
+                    Schedule schedule = scheduleRepository.findById(place.getSchedule().getScheduleId())
+                            .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
                     Optional<Diary> diary = diaryRepository.findByPlace(place);
                     if (diary.isPresent()) {
                         Optional<Image> image = imageRepository.findTopByDiary(diary.get());
@@ -300,7 +306,8 @@ public class TourService {
     }
 
     public DiaryDetailDto GetDiaryDetail(Long diaryId){
-        Diary diary = diaryRepository.findById(diaryId).orElseThrow();
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
         List<Image> images = imageRepository.findAllByDiary(diary);
 
         return DiaryDetailDto.builder()
@@ -322,7 +329,8 @@ public class TourService {
     private List<ScheduleGetDto> FindSchedules(List<Schedule> schedules) {
         return schedules.stream()
                 .map(schedule -> {
-                    Member member = memberRepository.findById(schedule.getMember().getMemberId()).orElseThrow(() -> new RuntimeException("Member not found"));
+                    Member member = memberRepository.findById(schedule.getMember().getMemberId())
+                            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
                     Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
                     String imageUrl = null;
@@ -355,7 +363,7 @@ public class TourService {
     public String AddNewLocation(NewLocationDto newLocationDto, Principal principal) {
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
         if (optionalMember.isEmpty()) {
-            throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
         Member member = optionalMember.get();
 
@@ -386,7 +394,7 @@ public class TourService {
 
                     approvalImageRepository.save(approvalImage);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
                 }
 
             });

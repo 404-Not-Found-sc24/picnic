@@ -2,6 +2,8 @@ package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.*;
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +39,9 @@ public class ScheduleService {
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
 
         if (optionalMember.isEmpty()) {
-            throw new UsernameNotFoundException("유저가 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
+
         Member member = optionalMember.get();
 
         log.info("name"+ scheduleCreateDto.getName());
@@ -60,7 +63,8 @@ public class ScheduleService {
     // 일정에 장소 추가
     public String createLocations(Long scheduleId, List<PlaceCreateDto> placeCreateDtoList, Principal principal) {
         // 이미 추가된 장소가 있는지 확인
-        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         if (placeRepository.existsBySchedule(schedule)) {
             // 이미 추가된 장소가 있으면 장소 일자랑 시간만 변경
@@ -74,7 +78,7 @@ public class ScheduleService {
                         PlaceCreateDto matchingDto = placeCreateDtoList.stream()
                                 .filter(placeCreateDto -> oldPlace.getLocation().getLocationId().equals(placeCreateDto.getLocationId()))
                                 .findFirst()
-                                .orElseThrow(() -> new RuntimeException("Matching dto not found")); // 일치하는 dto가 없는 경우 예외 처리
+                                .orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR)); // 일치하는 dto가 없는 경우 예외 처리
                         // Place의 값을 변경
                         oldPlace.setDate(matchingDto.getDate());
                         oldPlace.setTime(matchingDto.getTime());
@@ -91,7 +95,8 @@ public class ScheduleService {
         // 추가된 장소 제외하고는 새로 추가
         List<Place> places = placeCreateDtoList.stream()
                 .map(placeCreateDto -> Place.builder()
-                        .location(locationRepository.findById(placeCreateDto.getLocationId()).orElseThrow(() -> new RuntimeException("일치하는 장소가 없습니다.")))
+                        .location(locationRepository.findById(placeCreateDto.getLocationId())
+                                .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND)))
                                 .date(placeCreateDto.getDate())
                         .time(placeCreateDto.getTime())
                         .schedule(schedule)
@@ -104,7 +109,8 @@ public class ScheduleService {
 
     public List<SchedulePlaceDiaryGetDto> getSchedulePlaceDiary(Long scheduleId, Principal principal) {
         // 존재하지 않는 scheduleId인 경우 예외 발생
-        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         // 존재하는 schedule에 속하는 place list 조회
         List<Place> places = placeRepository.findBySchedule(schedule);
@@ -153,10 +159,10 @@ public class ScheduleService {
     // 여행 일기 생성
     public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
 
-        Place place = placeRepository.findById(placeId).orElseThrow(() -> new NullPointerException("장소 정보가 없습니다."));
+        Place place = placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 
         if (diaryRepository.existsByPlace(place))
-            throw new IOException("이미 일기를 작성하였습니다.");
+            throw new CustomException(ErrorCode.DUPLICATED_DIARY);
 
         Diary diary = Diary.builder()
                 .place(place)
@@ -178,8 +184,8 @@ public class ScheduleService {
                             .build();
 
                     imageRepository.save(img);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
                 }
 
             });
@@ -233,7 +239,8 @@ public class ScheduleService {
     }
 
     public List<MyScheduleGetDto> GetSchedulesInMyPage (Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         List<Schedule> scheduleList = scheduleRepository.findAllByMemberOrderByStartDateDesc(member);
 
@@ -265,11 +272,13 @@ public class ScheduleService {
 
     @Transactional
     public String deleteSchedule (Long scheduleId, Principal principal) throws IOException {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
-        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         if (schedule.getMember() != member)
-            throw new IOException();
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         scheduleRepository.delete(schedule);
         return "일정 삭제 완료";

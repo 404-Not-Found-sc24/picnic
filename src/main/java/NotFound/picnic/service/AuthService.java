@@ -1,9 +1,10 @@
 package NotFound.picnic.service;
 
-import NotFound.picnic.auth.CustomAuthenticationEntryPoint;
 import NotFound.picnic.auth.JwtUtil;
 import NotFound.picnic.domain.Member;
 import NotFound.picnic.dto.*;
+import NotFound.picnic.exception.ErrorCode;
+import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.repository.MemberRepository;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,11 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -44,13 +40,13 @@ public class AuthService {
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(email);
 
         if (optionalMember.isEmpty()) {
-            throw new UsernameNotFoundException("이메일이 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.LOGIN_FAILED);
         }
 
 
         Member member = optionalMember.get();
         if (!encoder.matches(password, member.getPassword())) {
-            throw new BadCredentialsException("비밀번호가 일치하지 않습니다");
+            throw new CustomException(ErrorCode.LOGIN_FAILED);
         }
 
         UserInfoDto userInfoDto = UserInfoDto.builder()
@@ -77,10 +73,10 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity<Long> join(SignUpDto signUpDto) throws IOException {
+    public ResponseEntity<Long> join(SignUpDto signUpDto) {
         Optional<Member> member = memberRepository.findMemberByEmail(signUpDto.getEmail());
         if (member.isPresent()) {
-            throw new IOException("This member email is already exist." + signUpDto.getEmail());
+            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
         }
 
         String password = BCryptEncoder.encode(signUpDto.getPassword());
@@ -101,11 +97,12 @@ public class AuthService {
     public LoginResponseDto reissueAccessToken(ReissueTokenDto refreshToken) {
         String token = refreshToken.getRefreshToken();
         if (!jwtUtil.validateToken(token)) {
-            throw new ValidationException("refresh token이 유효하지 않습니다.");
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
             Long memberId = jwtUtil.getUserId(token);
 
-            Member member = memberRepository.findById(memberId).orElseThrow();
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
             UserInfoDto userInfoDto = UserInfoDto.builder()
                     .memberId(member.getMemberId())
@@ -125,7 +122,8 @@ public class AuthService {
     }
 
     public UserGetDto getUser(Principal principal) {
-        Member member =  memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Member member =  memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         return UserGetDto.builder()
                         .memberId(member.getMemberId())
@@ -140,11 +138,13 @@ public class AuthService {
 
     @Transactional
     public String updateUser(UserUpdateDto userUpdateDto, Principal principal) throws IOException {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
         if (userUpdateDto.getName() != null) member.setName(userUpdateDto.getName());
         if (userUpdateDto.getNickname() != null && !userUpdateDto.getNickname().equals(member.getNickname())) {
             if (memberRepository.existsMemberByNickname(userUpdateDto.getNickname()))
-                throw new ValidationException();
+                throw new CustomException(ErrorCode.DUPLICATED_NICKNAME);
             member.setNickname(userUpdateDto.getNickname());
         }
         if (userUpdateDto.getPhone() != null) member.setPhone(userUpdateDto.getPhone());
@@ -159,7 +159,8 @@ public class AuthService {
 
     @Transactional
     public String deleteUser (Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         memberRepository.delete(member);
         return "삭제 완료";
     }
@@ -170,10 +171,12 @@ public class AuthService {
 
     @Transactional
     public String changePassword (PasswordDto passwordDto, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         if (!BCryptEncoder.matches(passwordDto.getPassword(), member.getPassword())) {
-            throw new ValidationException();
+            throw new CustomException(ErrorCode.PASSWORD_FAILED);
         }
+
         String newPassword = BCryptEncoder.encode(passwordDto.getNewPassword());
         member.setPassword(newPassword);
         memberRepository.save(member);
@@ -185,7 +188,7 @@ public class AuthService {
         String newPw = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         Member member = memberRepository.findMemberByEmailAndPhone(reissuePasswordDto.getEmail(), reissuePasswordDto.getPhone());
         if (member == null)
-            throw new Exception();
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
 
         member.setPassword(BCryptEncoder.encode(newPw));
 
@@ -202,7 +205,7 @@ public class AuthService {
             javaMailSender.send(simpleMailMessage);
         } catch (Exception exception) {
             log.error("PW Reissue ::{} ", exception.getMessage());
-            throw new Exception();
+            throw new CustomException(ErrorCode.REISSUE_PASSWORD_FAILED);
         }
         return "비밀번호 재설정 완료";
     }
