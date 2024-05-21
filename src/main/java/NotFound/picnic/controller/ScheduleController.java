@@ -53,9 +53,9 @@ public class ScheduleController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("")
-    public ResponseEntity<List<MyScheduleGetDto>> getSchedulesInMyPage(Principal principal) {
-        List<MyScheduleGetDto> scheduleGetDtos = scheduleService.GetSchedulesInMyPage(principal);
-        return ResponseEntity.ok().body(scheduleGetDtos);
+    public ResponseEntity<MyScheduleListDto> getSchedulesInMyPage(Principal principal) {
+        MyScheduleListDto myScheduleListDto = scheduleService.GetSchedulesInMyPage(principal);
+        return ResponseEntity.ok().body(myScheduleListDto);
     }
 
     @PreAuthorize("isAuthenticated()")
