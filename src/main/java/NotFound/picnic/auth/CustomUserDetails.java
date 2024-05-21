@@ -1,6 +1,6 @@
 package NotFound.picnic.auth;
 
-import NotFound.picnic.dto.UserInfoDto;
+import NotFound.picnic.dto.auth.UserInfoDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

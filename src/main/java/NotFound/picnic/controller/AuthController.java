@@ -1,18 +1,13 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.auth.*;
+import NotFound.picnic.dto.manage.UserGetDto;
 import NotFound.picnic.service.AuthService;
 import NotFound.picnic.service.S3Upload;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.apache.coyote.BadRequestException;
-import org.apache.coyote.Response;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +26,7 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     public ResponseEntity<LoginResponseDto> getMemberProfile(
-            @Valid @RequestBody LoginRequestDto loginRequestDto
+            @Valid @RequestBody NotFound.picnic.dto.auth.LoginRequestDto loginRequestDto
             ) {
         LoginResponseDto token = this.authService.login(loginRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(token);

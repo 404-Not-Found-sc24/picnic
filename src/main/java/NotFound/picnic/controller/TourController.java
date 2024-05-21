@@ -1,6 +1,6 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.tour.*;
 import NotFound.picnic.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,6 @@ import java.security.Principal;
 import java.util.List;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor

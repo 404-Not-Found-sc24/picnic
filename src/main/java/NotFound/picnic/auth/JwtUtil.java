@@ -1,8 +1,6 @@
 package NotFound.picnic.auth;
 
-import NotFound.picnic.dto.LoginRequestDto;
-import NotFound.picnic.dto.LoginResponseDto;
-import NotFound.picnic.dto.UserInfoDto;
+import NotFound.picnic.dto.auth.UserInfoDto;
 import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.exception.ErrorCode;
 import io.jsonwebtoken.*;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
