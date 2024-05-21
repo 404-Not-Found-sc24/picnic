@@ -15,6 +15,8 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 
     Optional<List<Place>> findAllBySchedule_ScheduleId(Long scheduleId);
 
+    Place findByDiary_DiaryId(Long diaryId);
+
     boolean existsBySchedule(Schedule schedule);
 
 

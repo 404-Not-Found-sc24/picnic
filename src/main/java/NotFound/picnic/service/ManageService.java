@@ -31,10 +31,19 @@ import java.util.stream.Collectors;
 public class ManageService {
 
     private final ApprovalRepository approvalRepository;
+    private final ApprovalImageRepository approvalImageRepository;
     private final EventRepository eventRepository;
     private final EventImageRepository eventImageRepository;
     private final MemberRepository memberRepository;
     private final LocationRepository locationRepository;
+    private final LocationImageRepostiory locationImageRepostiory;
+    private final AccommodationRepository accommodationRepository;
+    private final CultureRepository cultureRepository;
+    private final FestivalRepository festivalRepository;
+    private final LeisureRepository leisureRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final ShoppingRepository shoppingRepository;
+    private final TourRepository tourRepository;
     private final S3Upload s3Upload;
 
     public List<ApprovalDto> GetApprovalList(Principal principal){
@@ -111,6 +120,62 @@ public class ManageService {
                 .phone(approval.getPhone())
                 .build();
         locationRepository.save(location);
+
+        switch(approval.getDivision()){
+            case "숙박":
+                Accommodation accommodation = Accommodation.builder()
+                        .location(location)
+                        .build();
+                accommodationRepository.save(accommodation);
+                break;
+            case "문화시설":
+                Culture culture = Culture.builder()
+                        .location(location)
+                        .build();
+                cultureRepository.save(culture);
+                break;
+            case "축제 공연 행사":
+                Festival festival = Festival.builder()
+                        .location(location)
+                        .build();
+                festivalRepository.save(festival);
+                break;
+            case "레포츠":
+                Leisure leisure = Leisure.builder()
+                        .location(location)
+                        .build();
+                leisureRepository.save(leisure);
+                break;
+            case "음식점":
+                Restaurant restaurant = Restaurant.builder()
+                        .location(location)
+                        .build();
+                restaurantRepository.save(restaurant);
+                break;
+            case "쇼핑":
+                Shopping shopping = Shopping.builder()
+                        .location(location)
+                        .build();
+                shoppingRepository.save(shopping);
+                break;
+            case "관광지":
+                Tour tour = Tour.builder()
+                        .location(location)
+                        .build();
+                tourRepository.save(tour);
+                break;
+        }
+
+        Optional<ApprovalImage> approvalImage = approvalImageRepository.findApprovalImageByApproval_ApprovalId(approvalId);
+        if(approvalImage.isEmpty()){
+            return "장소 추가 완료";
+        }
+        ApprovalImage image = approvalImage.get();
+        LocationImage locationImage = LocationImage.builder()
+                .imageUrl(image.getImageUrl())
+                .location(location)
+                .build();
+        locationImageRepostiory.save(locationImage);
 
         return "장소 추가 완료";
     }

@@ -13,5 +13,7 @@ public class DiaryDetailDto {
     private String date;
     private String weather;
     private String content;
+    private Double latitude;
+    private Double longitude;
     private List<String> imageUrl;
 }

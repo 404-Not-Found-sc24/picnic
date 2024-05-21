@@ -52,7 +52,6 @@ public class EventService {
     }
 
     public EventDetailGetDto GetEventDetail(Long eventId){
-        
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
 
@@ -63,6 +62,12 @@ public class EventService {
                                           .collect(Collectors.toList());
 
 
+        Optional<EventImage> eventImage = eventImageRepository.findEventImageByEvent_EventId(eventId);
+        String url = "";
+        if(eventImage.isPresent()){
+            url = eventImage.get().getImageUrl();
+        }
+
         return EventDetailGetDto.builder()
                                     .eventId(event.getEventId())
                                     .locationId(event.getLocation().getLocationId())
@@ -71,7 +76,7 @@ public class EventService {
                                     .createdDate(event.getCreateAt())
                                     .updatedDate(event.getModifiedAt())
                                     .memberName(event.getMember().getName())
-                                    .images(imageDtos)
+                                    .imageUrl(url)
                                     .build();
        
     }

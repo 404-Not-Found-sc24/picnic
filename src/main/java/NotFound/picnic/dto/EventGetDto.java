@@ -13,6 +13,7 @@ public class EventGetDto {
     private String content;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
+    private Long locationId;
     private String memberName;
 
 }
