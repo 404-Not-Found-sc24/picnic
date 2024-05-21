@@ -3,6 +3,8 @@ package NotFound.picnic.auth;
 import NotFound.picnic.dto.LoginRequestDto;
 import NotFound.picnic.dto.LoginResponseDto;
 import NotFound.picnic.dto.UserInfoDto;
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -85,21 +87,24 @@ public class JwtUtil {
     // JWT 검증
     public boolean validateToken(String token) {
         try {
-            System.out.println(token);
+
             Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
             // 필수 claim 검사
             return claims.getExpiration().after(new Date()) && // 만료되지 않음
                     claims.getIssuer().equals(issuer); // 시스템에서 발급
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.info("Invalid JWT Token: {}", e.getMessage());
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
         } catch (ExpiredJwtException e) {
             log.info("Expired JWT Token", e);
+            throw new CustomException(ErrorCode.EXPIRED_TOKEN);
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT Token", e);
+            throw new CustomException(ErrorCode.UNSUPPORTED_TOKEN);
         } catch (IllegalArgumentException e) {
             log.info("JWT claims string is empty.", e);
+            throw new CustomException(ErrorCode.NO_JWT_CLAIM);
         }
-        return false;
     }
 
 

@@ -3,7 +3,10 @@ package NotFound.picnic.service;
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.*;
 import NotFound.picnic.enums.*;
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.repository.*;
+import com.amazonaws.services.kms.model.EnableKeyRotationRequest;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +70,8 @@ public class ManageService {
     }
 
     public String CreateAnnouncement (AnnounceCreateDto announceCreateDto, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Event event = Event.builder()
                 .title(announceCreateDto.getTitle())
@@ -84,10 +88,13 @@ public class ManageService {
     
 
     public String ApproveApproval(Long approvalId, ApproveDto approveDto){
-        Approval approval = approvalRepository.findById(approvalId).orElseThrow();
+        Approval approval = approvalRepository.findById(approvalId)
+                .orElseThrow(() -> new CustomException(ErrorCode.APPROVAL_NOT_FOUND));
+
         if(approval.getState() != State.APPLIED){
-            return "승인할 수 없는 장소입니다.";
+            throw new CustomException(ErrorCode.APPROVAL_FAILED);
         }
+
         approval.setAddress(approveDto.getAddress());
         approval.setName(approveDto.getName());
         approval.setDetail(approveDto.getDetail());
@@ -175,9 +182,10 @@ public class ManageService {
 
     public String DenyApproval(Long approvalId){
 
-        Approval approval = approvalRepository.findById(approvalId).orElseThrow();
+        Approval approval = approvalRepository.findById(approvalId)
+                .orElseThrow(() -> new CustomException(ErrorCode.APPROVAL_NOT_FOUND));
         if(approval.getState() != State.APPLIED){
-            return "거절할 수 없는 장소입니다.";
+            throw new CustomException(ErrorCode.APPROVAL_FAILED);
         }
         approval.setState(State.DENIED);
         approvalRepository.save(approval);
@@ -186,11 +194,12 @@ public class ManageService {
     }
 
     public String UpdateAnnouncement(AnnounceCreateDto announceCreateDto, Long eventId, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Event event = eventRepository.findById(eventId).orElseThrow();
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
         if (event.getMember() != member)
-            throw new ValidationException();
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         if (announceCreateDto.getTitle() != null) event.setTitle(announceCreateDto.getTitle());
         if (announceCreateDto.getContent() != null) event.setContent(announceCreateDto.getContent());
@@ -220,8 +229,8 @@ public class ManageService {
 
                     eventImageRepository.save(img);
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
                 }
 
             });
@@ -229,11 +238,13 @@ public class ManageService {
     }
 
     public String DeleteAnnouncement(Long eventId, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
-        Event event = eventRepository.findById(eventId).orElseThrow();
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
 
         if (event.getMember() != member)
-            throw new ValidationException();
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
         eventImageRepository.deleteAll(eventList);
@@ -257,7 +268,8 @@ public class ManageService {
     }
 
     public String UserRoleChange(UserRoleChangeDto userRoleChangeDto){
-        Member member = memberRepository.findById(userRoleChangeDto.getMemberId()).orElseThrow();
+        Member member = memberRepository.findById(userRoleChangeDto.getMemberId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         switch (userRoleChangeDto.getTargetRole()){
             case "ADMIN":
                 member.setRole(Role.ADMIN);
@@ -276,21 +288,22 @@ public class ManageService {
         return "권한 변경 완료";
     }
 
-    public String UpdateEvent(EventCreateDto eventCreateDto, Long eventId, Principal principal, int Type) {
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
-        
+    public String UpdateEvent(EventCreateDto eventCreateDto, Long eventId, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        Event event =eventRepository.findByEventIdAndType(eventId,CheckEventType(Type)).orElseThrow();
-
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
         
         if (event.getMember() != member)
-            throw new ValidationException();
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         if (eventCreateDto.getTitle() != null) event.setTitle(eventCreateDto.getTitle());
         if (eventCreateDto.getContent() != null) event.setContent(eventCreateDto.getContent());
         //관리자가 LocationId를 수정시 해당 event와 event와 같은 locationId를 가진 member(COMPANY)도 수정합니다.
         if (eventCreateDto.getLocationId() !=null) {
-            Member memberWhoCompany =memberRepository.findById(event.getLocation().getLocationId()).orElseThrow();
+            Member memberWhoCompany =memberRepository.findById(event.getLocation().getLocationId())
+                    .orElseThrow();
             Location location =locationRepository.findById(eventCreateDto.getLocationId()).orElseThrow();
             event.setLocation(location);
             
@@ -299,8 +312,6 @@ public class ManageService {
         eventRepository.save(event);
 
         if (EventCreateDtoImagesCheck(eventCreateDto)) {
-
-           
             
             List<EventImage> eventImageList = eventImageRepository.findAllByEvent(event);
 
@@ -312,14 +323,13 @@ public class ManageService {
 
            saveEventImages(eventCreateDto.getImages(), event);
         }
-        
-        
 
        return returnMessage(event.getType(),"수정");
     }
 
-    public String DeleteEvent(Long eventId, Principal principal,int Type) {
-        Event event = eventRepository.findById(eventId).orElseThrow();
+    public String DeleteEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
 
         List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
         eventImageRepository.deleteAll(eventList);
@@ -327,36 +337,15 @@ public class ManageService {
         return returnMessage(event.getType(),"삭제");
     }
 
-    
-    public EventType CheckEventType(int Type){
-
-        EventType eventType;
-        if (Type ==1){
-            eventType = EventType.ANNOUNCEMENT;
-        }
-        else if (Type == 2){
-            eventType = EventType.PROMOTION;
-        }
-        else {
-            eventType=EventType.EVENT;
-        }
-
-        return eventType;
-    }
-
     public boolean EventCreateDtoImagesCheck(EventCreateDto eventCreateDto){
         List<MultipartFile> images = eventCreateDto.getImages();
-         
-        boolean anyImageNotEmpty = images.stream().anyMatch(image -> !image.isEmpty());
 
-        return anyImageNotEmpty;
+        return images.stream().anyMatch(image -> !image.isEmpty());
     }
 
     public boolean EventImageListCheck(List<EventImage> eventImageList){
-        
-        boolean anyImageNotEmpty = eventImageList.stream().anyMatch(image -> !image.getImageUrl().isEmpty());
 
-        return anyImageNotEmpty;
+        return eventImageList.stream().anyMatch(image -> !image.getImageUrl().isEmpty());
     }
 
     public String returnMessage(EventType eventType, String propose){
@@ -373,11 +362,7 @@ public class ManageService {
            message="공지사항";
        }
 
-
-
-       String returnMessage = String.format("%s(이)가 성공적으로 %s 되었습니다", message,propose);
-
-       return returnMessage;
+       return String.format("%s(이)가 성공적으로 %s 되었습니다", message,propose);
 
    }
 }

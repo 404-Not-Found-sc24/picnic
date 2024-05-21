@@ -38,7 +38,7 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<Long> addMember(@Valid @RequestBody SignUpDto signUpDto) throws IOException {
+    public ResponseEntity<Long> addMember(@Valid @RequestBody SignUpDto signUpDto) {
         return authService.join(signUpDto);
     }
 
