@@ -13,10 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -155,7 +154,7 @@ public class ScheduleService {
 
 
     // 여행 일기 생성
-    public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
+    public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) {
 
         Place place = placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 
@@ -236,13 +235,20 @@ public class ScheduleService {
         return placeGetDtoList;
     }
 
-    public List<MyScheduleGetDto> GetSchedulesInMyPage (Principal principal) {
+    public MyScheduleListDto GetSchedulesInMyPage (Principal principal) {
         Member member = memberRepository.findMemberByEmail(principal.getName())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        List<Schedule> scheduleList = scheduleRepository.findAllByMemberOrderByStartDateDesc(member);
+        List<Schedule> scheduleList = scheduleRepository.findAllByMember(member);
 
-        return scheduleList.stream().map(schedule -> {
+        List<MyScheduleGetDto> beforeTravel = new ArrayList<>();
+        List<MyScheduleGetDto> traveling = new ArrayList<>();
+        List<MyScheduleGetDto> afterTravel = new ArrayList<>();
+
+        LocalDate now = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        scheduleList.forEach(schedule -> {
             Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
             Optional<Image> image = diaries.flatMap(diaryList ->
                     diaryList.stream()
@@ -256,7 +262,7 @@ public class ScheduleService {
             if (image.isPresent())
                 imageUrl = image.get().getImageUrl();
 
-            return MyScheduleGetDto.builder()
+            MyScheduleGetDto dto = MyScheduleGetDto.builder()
                     .scheduleId(schedule.getScheduleId())
                     .name(schedule.getName())
                     .startDate(schedule.getStartDate())
@@ -265,7 +271,30 @@ public class ScheduleService {
                     .location(schedule.getLocation())
                     .imageUrl(imageUrl)
                     .build();
-        }).collect(Collectors.toList());
+
+            LocalDate startDate = LocalDate.parse(schedule.getStartDate(), formatter);
+            LocalDate endDate = LocalDate.parse(schedule.getEndDate(), formatter);
+
+            if (startDate.isAfter(now)) {
+                beforeTravel.add(dto);
+            } else if (!startDate.isAfter(now) && !endDate.isBefore(now)) {
+                traveling.add(dto);
+            } else if (endDate.isBefore(now)) {
+                afterTravel.add(dto);
+            }
+        });
+
+        Comparator<MyScheduleGetDto> dateComparator = Comparator.comparing(dto -> LocalDate.parse(dto.getStartDate(), formatter));
+
+        beforeTravel.sort(dateComparator); // 거꾸로 정렬
+        traveling.sort(dateComparator); // 기본 날짜 순으로 정렬
+        afterTravel.sort(dateComparator.reversed());
+
+        return MyScheduleListDto.builder()
+                .beforeTravel(beforeTravel)
+                .traveling(traveling)
+                .afterTravel(afterTravel)
+                .build();
     }
 
     @Transactional
