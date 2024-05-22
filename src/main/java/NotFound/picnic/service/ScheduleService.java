@@ -219,6 +219,7 @@ public class ScheduleService {
                             String imageUrl = null;
                             if (image.isPresent()) imageUrl = image.get().getImageUrl();
                             return PlaceGetDto.builder()
+                                    .placeId(place.getPlaceId())
                                     .locationId(location.getLocationId())
                                     .name(location.getName())
                                     .address(location.getAddress())
