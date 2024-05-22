@@ -201,14 +201,17 @@ public class ScheduleService {
         List<List<PlaceGetDto>> placeGetDtoList = new ArrayList<>();
 
         if (placeList.isPresent()) {
-            List<String> uniqueDates = placeList.get().stream()
+            List<Place> sortedPlaces = placeList.get().stream()
+                    .sorted(Comparator.comparing(Place::getDate).thenComparing(Place::getTime))
+                    .toList();
+
+            List<String> uniqueDates = sortedPlaces.stream()
                     .map(Place::getDate)
                     .distinct()
-                    .sorted()
                     .toList();
 
             for (String date : uniqueDates) {
-                List<PlaceGetDto> placesWithSameDate = placeList.get().stream()
+                List<PlaceGetDto> placesWithSameDate = sortedPlaces.stream()
                         .filter(place -> place.getDate().equals(date))
                         .map(place -> {
                             Location location = place.getLocation();
@@ -216,18 +219,14 @@ public class ScheduleService {
                             String imageUrl = null;
                             if (image.isPresent()) imageUrl = image.get().getImageUrl();
                             return PlaceGetDto.builder()
-                                    .placeId(place.getPlaceId())
                                     .locationId(location.getLocationId())
-                                    .locationName(location.getName())
-                                    .date(place.getDate())
-                                    .time(place.getTime())
+                                    .name(location.getName())
                                     .address(location.getAddress())
                                     .latitude(location.getLatitude())
                                     .longitude(location.getLongitude())
                                     .imageUrl(imageUrl)
                                     .build();
                         })
-                        .sorted(Comparator.comparing(PlaceGetDto::getTime))
                         .toList();
                 placeGetDtoList.add(placesWithSameDate);
             }
