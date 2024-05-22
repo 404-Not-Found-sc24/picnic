@@ -64,4 +64,11 @@ public class ScheduleController {
         String res = scheduleService.deleteSchedule(scheduleId, principal);
         return ResponseEntity.ok().body(res);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/place/{placeId}")
+    public ResponseEntity<String> deletePlace(@PathVariable(name="placeId") Long placeId, Principal principal) throws IOException{
+        String response = scheduleService.DeletePlace(placeId, principal);
+        return ResponseEntity.ok().body(response);
+    }
 }

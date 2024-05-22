@@ -314,4 +314,16 @@ public class ScheduleService {
         return "일정 삭제 완료";
     }
 
+    public String DeletePlace(Long placeId, Principal principal) throws IOException{
+        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow();
+        Place place = placeRepository.findById(placeId).orElseThrow();
+
+        if(member != place.getSchedule().getMember()){
+            throw  new IOException();
+        }
+
+        placeRepository.delete(place);
+        return "장소 삭제 완료";
+    }
+
 }
