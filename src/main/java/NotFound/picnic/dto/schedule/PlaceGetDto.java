@@ -6,11 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class PlaceGetDto {
-    private Long placeId;
     private Long locationId;
-    private String locationName;
-    private String date;
-    private String time;
+    private String name;
     private String address;
     private Double latitude;
     private Double longitude;
