@@ -71,4 +71,11 @@ public class ScheduleController {
         String response = scheduleService.DeletePlace(placeId, principal);
         return ResponseEntity.ok().body(response);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/list")
+    public ResponseEntity<List<MyScheduleGetDto>> getSchedules(Principal principal) {
+        List<MyScheduleGetDto> scheduleGetDtos = scheduleService.GetSchedules(principal);
+        return ResponseEntity.ok().body(scheduleGetDtos);
+    }
 }
