@@ -327,4 +327,36 @@ public class ScheduleService {
         return "장소 삭제 완료";
     }
 
+    public List<MyScheduleGetDto> GetSchedules (Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        List<Schedule> scheduleList = scheduleRepository.findAllByMemberOrderByStartDateDesc(member);
+
+        return scheduleList.stream().map(schedule -> {
+            Optional<List<Diary>> diaries = diaryRepository.findAllBySchedule(schedule);
+            Optional<Image> image = diaries.flatMap(diaryList ->
+                    diaryList.stream()
+                            .map(imageRepository::findTopByDiary)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .findFirst()
+            );
+
+            String imageUrl = null;
+            if (image.isPresent())
+                imageUrl = image.get().getImageUrl();
+
+            return MyScheduleGetDto.builder()
+                    .scheduleId(schedule.getScheduleId())
+                    .name(schedule.getName())
+                    .startDate(schedule.getStartDate())
+                    .endDate(schedule.getEndDate())
+                    .share(schedule.isShare())
+                    .location(schedule.getLocation())
+                    .imageUrl(imageUrl)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
 }
