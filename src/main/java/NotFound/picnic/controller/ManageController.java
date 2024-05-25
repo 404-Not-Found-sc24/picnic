@@ -2,14 +2,12 @@ package NotFound.picnic.controller;
 
 import NotFound.picnic.dto.event.AnnounceCreateDto;
 import NotFound.picnic.dto.event.EventCreateDto;
-import NotFound.picnic.dto.manage.ApprovalDto;
-import NotFound.picnic.dto.manage.ApproveDto;
-import NotFound.picnic.dto.manage.UserGetDto;
-import NotFound.picnic.dto.manage.UserRoleChangeDto;
+import NotFound.picnic.dto.manage.*;
 import NotFound.picnic.service.ManageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -95,4 +93,10 @@ public class ManageController {
     }
     
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/member/{memberId}")
+    public ResponseEntity<String> updateMember(@PathVariable(name="memberId") Long memberId, @RequestBody UserUpdateDto userUpdateDto) {
+        String res = manageService.UpdateUser(userUpdateDto, memberId);
+        return ResponseEntity.ok().body(res);
+    }
 }
