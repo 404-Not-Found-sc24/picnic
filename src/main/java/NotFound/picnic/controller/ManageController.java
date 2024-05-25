@@ -99,4 +99,11 @@ public class ManageController {
         String res = manageService.UpdateUser(userUpdateDto, memberId);
         return ResponseEntity.ok().body(res);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/member/{memberId}")
+    public ResponseEntity<String> deleteUser(@PathVariable(name="memberId") Long memberId) {
+        String res = manageService.DeleteUser(memberId);
+        return ResponseEntity.ok().body(res);
+    }
 }
