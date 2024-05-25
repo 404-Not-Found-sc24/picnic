@@ -348,7 +348,7 @@ public class ManageService {
    }
 
    public String UpdateUser(UserUpdateDto userUpdateDto, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+       Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (userUpdateDto.getName() != null) member.setName(userUpdateDto.getName());
         if (userUpdateDto.getNickname() != null) member.setNickname(userUpdateDto.getNickname());
@@ -363,5 +363,13 @@ public class ManageService {
         memberRepository.save(member);
 
         return "수정 완료";
+   }
+
+   public String DeleteUser(Long memberId) {
+       Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+       memberRepository.delete(member);
+
+       return "삭제 완료";
    }
 }
