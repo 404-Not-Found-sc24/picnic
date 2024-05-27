@@ -197,8 +197,6 @@ public class ManageService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-        if (event.getMember() != member)
-            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         if (announceCreateDto.getTitle() != null) event.setTitle(announceCreateDto.getTitle());
         if (announceCreateDto.getContent() != null) event.setContent(announceCreateDto.getContent());
@@ -242,8 +240,6 @@ public class ManageService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
 
-        if (event.getMember() != member)
-            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
         eventImageRepository.deleteAll(eventList);
