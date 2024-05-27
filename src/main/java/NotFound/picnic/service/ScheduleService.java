@@ -359,4 +359,18 @@ public class ScheduleService {
         }).collect(Collectors.toList());
     }
 
+    public String UpdateSchedule (ScheduleCreateDto scheduleCreateDto, Long scheduleId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
+
+        if (scheduleCreateDto.getName() != null) schedule.setName(scheduleCreateDto.getName());
+        if (scheduleCreateDto.getLocation() != null) schedule.setLocation(scheduleCreateDto.getLocation());
+        if (scheduleCreateDto.getStartDate() != null) schedule.setStartDate(scheduleCreateDto.getStartDate());
+        if (scheduleCreateDto.getEndDate() != null) schedule.setEndDate(scheduleCreateDto.getEndDate());
+
+        scheduleRepository.save(schedule);
+
+        return "수정 완료";
+    }
+
 }
