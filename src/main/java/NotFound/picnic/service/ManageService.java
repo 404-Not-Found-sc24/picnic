@@ -81,7 +81,6 @@ public class ManageService {
 
         return "공지 작성 완료";
     }
-    
 
     public String ApproveApproval(Long approvalId, ApproveDto approveDto){
         Approval approval = approvalRepository.findById(approvalId)
@@ -189,10 +188,7 @@ public class ManageService {
         return "장소 거절이 완료되었습니다.";
     }
 
-    public String UpdateAnnouncement(AnnounceCreateDto announceCreateDto, Long eventId, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
+    public String UpdateEvent(AnnounceCreateDto announceCreateDto, Long eventId) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
 
         if (announceCreateDto.getTitle() != null) event.setTitle(announceCreateDto.getTitle());
@@ -208,7 +204,7 @@ public class ManageService {
             saveEventImages(announceCreateDto.getImages(), event);
         }
 
-        return "공지 수정 완료";
+        return "이벤트 수정 완료";
     }
 
     private void saveEventImages(List<MultipartFile> images, Event event) {
@@ -231,17 +227,14 @@ public class ManageService {
         
     }
 
-    public String DeleteAnnouncement(Long eventId, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public String DeleteEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-
 
         List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
         eventImageRepository.deleteAll(eventList);
         eventRepository.delete(event);
-        return "공지 삭제 완료";
+        return "이벤트 삭제 완료";
     }
 
     public List<UserGetDto> getUsers() {
@@ -278,44 +271,6 @@ public class ManageService {
         }
 
         return "권한 변경 완료";
-    }
-
-    public String UpdateEvent(EventCreateDto eventCreateDto, Long eventId, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-
-        if (eventCreateDto.getTitle() != null) event.setTitle(eventCreateDto.getTitle());
-        if (eventCreateDto.getContent() != null) event.setContent(eventCreateDto.getContent());
-        //관리자가 LocationId를 수정시 해당 event와 event와 같은 locationId를 가진 member(COMPANY)도 수정합니다.
-        eventRepository.save(event);
-
-        if (EventCreateDtoImagesCheck(eventCreateDto)) {
-            
-            List<EventImage> eventImageList = eventImageRepository.findAllByEvent(event);
-
-            if (EventImageListCheck(eventImageList))
-                eventImageRepository.deleteAll(eventImageList);
-                
-            
-            
-
-           saveEventImages(eventCreateDto.getImages(), event);
-        }
-
-       return returnMessage(event.getType(),"수정");
-    }
-
-    public String DeleteEvent(Long eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-
-        List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
-        eventImageRepository.deleteAll(eventList);
-        eventRepository.delete(event);
-        return returnMessage(event.getType(),"삭제");
     }
 
     public boolean EventCreateDtoImagesCheck(EventCreateDto eventCreateDto){
