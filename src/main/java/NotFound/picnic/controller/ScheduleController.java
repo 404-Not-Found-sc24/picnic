@@ -78,4 +78,11 @@ public class ScheduleController {
         List<MyScheduleGetDto> scheduleGetDtos = scheduleService.GetSchedules(principal);
         return ResponseEntity.ok().body(scheduleGetDtos);
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/{scheduleId}")
+    public ResponseEntity<String> updateSchedule(@PathVariable(name="scheduleId") Long scheduleId, @RequestBody ScheduleCreateDto scheduleCreateDto) {
+        String res = scheduleService.UpdateSchedule(scheduleCreateDto, scheduleId);
+        return ResponseEntity.ok().body(res);
+    }
 }
