@@ -293,14 +293,6 @@ public class ManageService {
         if (eventCreateDto.getTitle() != null) event.setTitle(eventCreateDto.getTitle());
         if (eventCreateDto.getContent() != null) event.setContent(eventCreateDto.getContent());
         //관리자가 LocationId를 수정시 해당 event와 event와 같은 locationId를 가진 member(COMPANY)도 수정합니다.
-        if (eventCreateDto.getLocationId() !=null) {
-            Member memberWhoCompany =memberRepository.findById(event.getLocation().getLocationId())
-                    .orElseThrow();
-            Location location =locationRepository.findById(eventCreateDto.getLocationId()).orElseThrow();
-            event.setLocation(location);
-            
-            memberWhoCompany.setLocationId(eventCreateDto.getLocationId());
-        }
         eventRepository.save(event);
 
         if (EventCreateDtoImagesCheck(eventCreateDto)) {
