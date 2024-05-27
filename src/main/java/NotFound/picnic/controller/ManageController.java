@@ -51,16 +51,16 @@ public class ManageController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/announce/{eventId}")
-    public ResponseEntity<String> updateAnnouncement(AnnounceCreateDto announceCreateDto, @PathVariable Long eventId, Principal principal) {
-        String res = manageService.UpdateAnnouncement(announceCreateDto, eventId, principal);
+    @PatchMapping("/event/{eventId}")
+    public ResponseEntity<String> updateEvent(AnnounceCreateDto announceCreateDto, @PathVariable Long eventId) {
+        String res = manageService.UpdateEvent(announceCreateDto, eventId);
         return ResponseEntity.ok().body(res);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/announce/{eventId}")
-    public ResponseEntity<String> deleteAnnouncement(@PathVariable Long eventId, Principal principal) {
-        String res = manageService.DeleteAnnouncement(eventId, principal);
+    @DeleteMapping("/event/{eventId}")
+    public ResponseEntity<String> deleteEvent(@PathVariable Long eventId) {
+        String res = manageService.DeleteEvent(eventId);
         return ResponseEntity.ok().body(res);
     }
 
@@ -77,21 +77,6 @@ public class ManageController {
         String response = manageService.UserRoleChange(userRoleChangeDto);
         return ResponseEntity.ok().body(response);
     }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/promotion/{eventId}")
-    public ResponseEntity<String> updatePromotion(EventCreateDto eventCreateDto, @PathVariable(name="eventId") Long eventId, Principal principal) {
-        String res = manageService.UpdateEvent(eventCreateDto, eventId, principal);
-        return ResponseEntity.ok().body(res);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/promotion/{eventId}")
-    public ResponseEntity<String> deletePromotion(@PathVariable(name="eventId") Long eventId) {
-        String res = manageService.DeleteEvent(eventId);
-        return ResponseEntity.ok().body(res);
-    }
-    
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/member/{memberId}")
