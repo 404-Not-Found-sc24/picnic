@@ -16,7 +16,6 @@ public class EventCreateDto {
 
     private String title;
     private String content;
-    private Long locationId;
     private List<MultipartFile> images;
     private EventType eventType;
 
