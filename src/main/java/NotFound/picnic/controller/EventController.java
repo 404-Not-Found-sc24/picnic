@@ -1,16 +1,17 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.event.EventCreateDto;
+import NotFound.picnic.dto.event.EventDetailGetDto;
+import NotFound.picnic.dto.event.EventGetDto;
+import NotFound.picnic.dto.event.EventUpdateDto;
+import NotFound.picnic.enums.EventType;
 import NotFound.picnic.service.EventService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.List;
 
@@ -22,47 +23,54 @@ public class EventController {
 
     
     @GetMapping("/event")
-    public ResponseEntity<List<EventGetDto>> getEvents() throws UnsupportedEncodingException{
-        List<EventGetDto> eventGetDtoList = eventService.GetEvents(0);
+    public ResponseEntity<List<EventGetDto>> getEvents() {
+        List<EventGetDto> eventGetDtoList = eventService.GetEvents(EventType.EVENT);
         return ResponseEntity.ok().body(eventGetDtoList);
     }
 
     @GetMapping("/announce")
-    public ResponseEntity<List<EventGetDto>> getAnnounces() throws UnsupportedEncodingException{
-        List<EventGetDto> AnnounceGetDtoList =eventService.GetEvents(1) ;
+    public ResponseEntity<List<EventGetDto>> getAnnounces() {
+        List<EventGetDto> AnnounceGetDtoList =eventService.GetEvents(EventType.ANNOUNCEMENT) ;
         return ResponseEntity.ok().body(AnnounceGetDtoList);
     }
     @GetMapping("/promotion")
-    public ResponseEntity<List<EventGetDto>> getPromotions() throws UnsupportedEncodingException{
-        List<EventGetDto> PromotionGetDtoList =eventService.GetEvents(2) ;
+    public ResponseEntity<List<EventGetDto>> getPromotions() {
+        List<EventGetDto> PromotionGetDtoList =eventService.GetEvents(EventType.PROMOTION) ;
         return ResponseEntity.ok().body(PromotionGetDtoList);
     }
     
     @GetMapping("/event/{eventId}")
-    public ResponseEntity<EventDetailGetDto> getEventDetail(@PathVariable(name="eventId") Long eventId) throws UnsupportedEncodingException{
-        EventDetailGetDto eventDetailGetDto = eventService.GetEventDetail(eventId,0);
+    public ResponseEntity<EventDetailGetDto> getEventDetail(@PathVariable(name="eventId") Long eventId) {
+        EventDetailGetDto eventDetailGetDto = eventService.GetEventDetail(eventId);
         return ResponseEntity.ok().body(eventDetailGetDto);
     }
 
     @GetMapping("/announce/{eventId}")
-    public ResponseEntity<EventDetailGetDto> getAnnounceDetail(@PathVariable(name="eventId") Long eventId) throws UnsupportedEncodingException{
-        EventDetailGetDto AnnounceDetailGetDto = eventService.GetEventDetail(eventId,1);
+    public ResponseEntity<EventDetailGetDto> getAnnounceDetail(@PathVariable(name="eventId") Long eventId) {
+        EventDetailGetDto AnnounceDetailGetDto = eventService.GetEventDetail(eventId);
         return ResponseEntity.ok().body(AnnounceDetailGetDto);
     }
 
     @GetMapping("/promotion/{eventId}")
-    public ResponseEntity<EventDetailGetDto> getPromotionDetail(@PathVariable(name="eventId") Long eventId) throws UnsupportedEncodingException{
-        EventDetailGetDto PromotionDetailGetDto = eventService.GetEventDetail(eventId,2);
+    public ResponseEntity<EventDetailGetDto> getPromotionDetail(@PathVariable(name="eventId") Long eventId) {
+        EventDetailGetDto PromotionDetailGetDto = eventService.GetEventDetail(eventId);
         return ResponseEntity.ok().body(PromotionDetailGetDto);
     }
     
 
     @PreAuthorize("hasRole('COMPANY')")
     @PostMapping()
-    public ResponseEntity<String> creatEvent(EventCreateDto eventCreateDto, Principal principal)throws IOException{
+    public ResponseEntity<String> creatEvent(EventCreateDto eventCreateDto, Principal principal) {
         String Response = eventService.createEvent(eventCreateDto, principal);
 
         return ResponseEntity.ok().body(Response);
+    }
+
+    @PreAuthorize("hasRole('COMPANY')")
+    @PatchMapping("/{eventId}")
+    public ResponseEntity<String> updateEvent(@PathVariable(name="eventId") Long eventId, EventUpdateDto eventUpdateDto, Principal principal) {
+        String res = eventService.UpdateEvent(eventId, eventUpdateDto, principal);
+        return ResponseEntity.ok().body(res);
     }
     
 

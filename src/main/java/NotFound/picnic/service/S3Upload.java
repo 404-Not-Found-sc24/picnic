@@ -1,5 +1,7 @@
 package NotFound.picnic.service;
 
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -33,7 +35,7 @@ public class S3Upload {
 	// MultipartFile을 전달받아 File로 전환한 후 S3에 업로드
 	public String uploadFiles(MultipartFile multipartFile, String dirName) throws IOException {
 		File uploadFile = convert(multipartFile)
-			.orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File 전환 실패"));
+			.orElseThrow(() -> new CustomException(ErrorCode.FILE_CONVERT_FAILED));
 		return upload(uploadFile, dirName);
 	}
 
@@ -55,7 +57,7 @@ public class S3Upload {
 				.withCannedAcl(CannedAccessControlList.PublicRead)  // PublicRead 권한으로 업로드 됨
 		);
 
-		return fileName;
+		return amazonS3Client.getUrl(bucket, fileName).toString();
 	}
 
 	//로컬에 있는 이미지 삭제

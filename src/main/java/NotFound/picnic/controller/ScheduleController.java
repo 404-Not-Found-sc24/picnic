@@ -1,12 +1,11 @@
 package NotFound.picnic.controller;
 
-import NotFound.picnic.dto.*;
+import NotFound.picnic.dto.schedule.*;
 import NotFound.picnic.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -54,8 +53,29 @@ public class ScheduleController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("")
-    public ResponseEntity<List<MyScheduleGetDto>> getSchedulesInMyPage(Principal principal) {
-        List<MyScheduleGetDto> scheduleGetDtos = scheduleService.GetSchedulesInMyPage(principal);
+    public ResponseEntity<MyScheduleListDto> getSchedulesInMyPage(Principal principal) {
+        MyScheduleListDto myScheduleListDto = scheduleService.GetSchedulesInMyPage(principal);
+        return ResponseEntity.ok().body(myScheduleListDto);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/{scheduleId}")
+    public ResponseEntity<String> deleteSchedule (@PathVariable(name="scheduleId") Long scheduleId, Principal principal) throws IOException {
+        String res = scheduleService.deleteSchedule(scheduleId, principal);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/place/{placeId}")
+    public ResponseEntity<String> deletePlace(@PathVariable(name="placeId") Long placeId, Principal principal) throws IOException{
+        String response = scheduleService.DeletePlace(placeId, principal);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/list")
+    public ResponseEntity<List<MyScheduleGetDto>> getSchedules(Principal principal) {
+        List<MyScheduleGetDto> scheduleGetDtos = scheduleService.GetSchedules(principal);
         return ResponseEntity.ok().body(scheduleGetDtos);
     }
 }

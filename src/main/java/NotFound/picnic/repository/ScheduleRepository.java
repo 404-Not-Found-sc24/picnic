@@ -24,5 +24,8 @@ public interface ScheduleRepository  extends JpaRepository<Schedule, Long> {
 
     List<Schedule> findAllByLocationContainingAndShare(String keyword, boolean share);
 
+    List<Schedule> findAllByMember(Member member);
+
+
     List<Schedule> findAllByMemberOrderByStartDateDesc(Member member);
 }

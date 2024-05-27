@@ -1,19 +1,19 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
+import NotFound.picnic.dto.event.*;
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.repository.*;
-import NotFound.picnic.dto.*;
 import NotFound.picnic.enums.*;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -30,10 +30,10 @@ public class EventService {
     private final MemberRepository memberRepository;
     private final S3Upload s3Upload;
 
-    public List<EventGetDto> GetEvents(int Type) throws UnsupportedEncodingException{
+    public List<EventGetDto> GetEvents(EventType type) {
         
         
-        List<Event> events =eventRepository.findAllByType(CheckEventType(Type));
+        List<Event> events =eventRepository.findAllByType(type);
 
         events.sort(Comparator.comparing(Event::getCreateAt).reversed());
         
@@ -49,20 +49,22 @@ public class EventService {
                 
     }
 
-    public EventDetailGetDto GetEventDetail(Long eventId,int Type){
-        
-        List<Event> events =eventRepository.findAllByType(CheckEventType(Type));
-        Event event = events.stream()
-        .filter(e -> e.getEventId().equals(eventId))
-        .findFirst()
-        .orElseThrow(() -> new RuntimeException("해당 정보를 찾을 수 없습니다."));
+    public EventDetailGetDto GetEventDetail(Long eventId){
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
 
         List<EventImageDto> imageDtos = event.getEventImageList().stream()
                                           .map(image -> EventImageDto.builder()
                                           .imageUrl(image.getImageUrl())
                                           .build())
                                           .collect(Collectors.toList());
-        
+
+
+        Optional<EventImage> eventImage = eventImageRepository.findEventImageByEvent_EventId(eventId);
+        String url = "";
+        if(eventImage.isPresent()){
+            url = eventImage.get().getImageUrl();
+        }
 
         return EventDetailGetDto.builder()
                                     .eventId(event.getEventId())
@@ -72,7 +74,7 @@ public class EventService {
                                     .createdDate(event.getCreateAt())
                                     .updatedDate(event.getModifiedAt())
                                     .memberName(event.getMember().getName())
-                                    .images(imageDtos)
+                                    .imageUrl(url)
                                     .build();
        
     }
@@ -81,13 +83,13 @@ public class EventService {
 
     public String createEvent(EventCreateDto eventCreateDto, Principal principal){
 
-        Member member = memberRepository.findMemberByEmail(principal.getName()).orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        
-        if(EventType.ANNOUNCEMENT==eventCreateDto.getEventType()){
-            return "You are not allowed";
-        }
-        Location location = locationRepository.findById(member.getLocationId()).orElseThrow(() -> new IllegalArgumentException("해당하는 장소를 찾을 수 없습니다."));
+
+        Location location = locationRepository.findById(member.getLocationId())
+                .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
+
         Event event = Event.builder()
         .title(eventCreateDto.getTitle())
         .content(eventCreateDto.getContent())
@@ -101,29 +103,12 @@ public class EventService {
 
         
         List<MultipartFile> images = eventCreateDto.getImages();
-         
-        saveEventImages(images,event);
-            
-        
+
+        if (images != null)
+            saveEventImages(images,event);
 
         return returnMessage(eventCreateDto.getEventType());
 
-    }
-
-    private EventType CheckEventType(int Type){
-
-        EventType eventType;
-        if (Type ==1){
-            eventType = EventType.ANNOUNCEMENT;
-        }
-        else if (Type == 2){
-            eventType = EventType.PROMOTION;
-        }
-        else {
-            eventType=EventType.EVENT;
-        }
-
-        return eventType;
     }
 
     private String returnMessage(EventType eventType){
@@ -159,15 +144,37 @@ public class EventService {
 
                 eventImageRepository.save(img);
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
             }
 
         });
     
 }
     
-    
+@Transactional
+public String UpdateEvent (Long eventId, EventUpdateDto eventUpdateDto, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
+
+        if (!event.getMember().equals(member))
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+
+        log.info("title" + eventUpdateDto.getTitle());
+
+        if (eventUpdateDto.getTitle() != null) event.setTitle(eventUpdateDto.getTitle());
+        if (eventUpdateDto.getContent() != null) event.setContent(eventUpdateDto.getContent());
+        if (eventUpdateDto.getImages() != null) {
+            List<EventImage> eventImageList = eventImageRepository.findAllByEvent(event);
+            eventImageRepository.deleteAll(eventImageList);
+            saveEventImages(eventUpdateDto.getImages(), event);
+        }
+        eventRepository.save(event);
+
+        return "이벤트 수정 완료";
+}
 
 
 }
