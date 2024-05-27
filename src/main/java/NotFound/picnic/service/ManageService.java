@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.lang.reflect.Type;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +69,9 @@ public class ManageService {
     public String CreateAnnouncement (AnnounceCreateDto announceCreateDto, Principal principal) {
         Member member = memberRepository.findMemberByEmail(principal.getName())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
+        if(!announceCreateDto.getEventType().equals(EventType.ANNOUNCEMENT)){
+            throw new CustomException(ErrorCode.SERVER_ERROR);
+        }
         Event event = Event.builder()
                 .title(announceCreateDto.getTitle())
                 .content(announceCreateDto.getContent())
