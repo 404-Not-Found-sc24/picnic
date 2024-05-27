@@ -3,7 +3,10 @@ package NotFound.picnic.service;
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.event.AnnounceCreateDto;
 import NotFound.picnic.dto.event.EventCreateDto;
-import NotFound.picnic.dto.manage.*;
+import NotFound.picnic.dto.manage.ApprovalDto;
+import NotFound.picnic.dto.manage.ApproveDto;
+import NotFound.picnic.dto.manage.UserGetDto;
+import NotFound.picnic.dto.manage.UserRoleChangeDto;
 import NotFound.picnic.enums.*;
 import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.exception.ErrorCode;
@@ -290,6 +293,9 @@ public class ManageService {
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
+        
+        if (event.getMember() != member)
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         if (eventCreateDto.getTitle() != null) event.setTitle(eventCreateDto.getTitle());
         if (eventCreateDto.getContent() != null) event.setContent(eventCreateDto.getContent());
@@ -357,31 +363,5 @@ public class ManageService {
 
        return String.format("%s(이)가 성공적으로 %s 되었습니다", message,propose);
 
-   }
-
-   public String UpdateUser(UserUpdateDto userUpdateDto, Long memberId) {
-       Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        if (userUpdateDto.getName() != null) member.setName(userUpdateDto.getName());
-        if (userUpdateDto.getNickname() != null) member.setNickname(userUpdateDto.getNickname());
-        if (userUpdateDto.getEmail() != null) member.setEmail(userUpdateDto.getEmail());
-        if (userUpdateDto.getPhone() != null) member.setPhone(userUpdateDto.getPhone());
-        if (userUpdateDto.getLocationId() != null) {
-            if (!locationRepository.existsById(userUpdateDto.getLocationId()))
-                throw new CustomException(ErrorCode.LOCATION_NOT_FOUND);
-            member.setLocationId(userUpdateDto.getLocationId());
-        }
-
-        memberRepository.save(member);
-
-        return "수정 완료";
-   }
-
-   public String DeleteUser(Long memberId) {
-       Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-       memberRepository.delete(member);
-
-       return "삭제 완료";
    }
 }
