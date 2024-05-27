@@ -150,10 +150,10 @@ public class EventService {
 
         });
     
-}
+    }
     
-@Transactional
-public String UpdateEvent (Long eventId, EventUpdateDto eventUpdateDto, Principal principal) {
+    @Transactional
+    public String UpdateEvent (Long eventId, EventUpdateDto eventUpdateDto, Principal principal) {
         Member member = memberRepository.findMemberByEmail(principal.getName())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Event event = eventRepository.findById(eventId)
@@ -174,7 +174,21 @@ public String UpdateEvent (Long eventId, EventUpdateDto eventUpdateDto, Principa
         eventRepository.save(event);
 
         return "이벤트 수정 완료";
-}
+    }
 
+    public String DeleteEvent(Long eventId, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
+
+        if (event.getMember() != member)
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+
+        eventRepository.delete(event);
+
+        return "이벤트 삭제 완료";
+    }
 
 }

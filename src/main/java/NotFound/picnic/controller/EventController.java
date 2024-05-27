@@ -73,7 +73,12 @@ public class EventController {
         return ResponseEntity.ok().body(res);
     }
     
-
+    @PreAuthorize("hasRole('COMPANY')")
+    @DeleteMapping("/{eventId}")
+    public ResponseEntity<String> deleteEvent(@PathVariable(name="eventId") Long eventId, Principal principal) {
+        String res = eventService.DeleteEvent(eventId, principal);
+        return ResponseEntity.ok().body(res);
+    }
 
 
 
