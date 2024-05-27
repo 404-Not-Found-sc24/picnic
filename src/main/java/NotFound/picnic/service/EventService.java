@@ -1,15 +1,13 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
-import NotFound.picnic.dto.event.EventCreateDto;
-import NotFound.picnic.dto.event.EventDetailGetDto;
-import NotFound.picnic.dto.event.EventGetDto;
-import NotFound.picnic.dto.event.EventImageDto;
+import NotFound.picnic.dto.event.*;
 import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.repository.*;
 import NotFound.picnic.enums.*;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -113,7 +111,6 @@ public class EventService {
 
     }
 
-
     private String returnMessage(EventType eventType){
          String message="이벤트";
 
@@ -138,6 +135,7 @@ public class EventService {
     private void saveEventImages(List<MultipartFile> images, Event event) {
         images.forEach(image -> {
             try {
+                if (!image.isEmpty()){
                 String url = s3Upload.uploadFiles(image, "event");
                 EventImage img = EventImage.builder()
                         .event(event)
@@ -145,15 +143,52 @@ public class EventService {
                         .build();
 
                 eventImageRepository.save(img);
+                }
             } catch (Exception e) {
                 throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
             }
 
         });
     
-}
+    }
     
-    
+    @Transactional
+    public String UpdateEvent (Long eventId, EventUpdateDto eventUpdateDto, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
 
+        if (!event.getMember().equals(member))
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+
+        log.info("title" + eventUpdateDto.getTitle());
+
+        if (eventUpdateDto.getTitle() != null) event.setTitle(eventUpdateDto.getTitle());
+        if (eventUpdateDto.getContent() != null) event.setContent(eventUpdateDto.getContent());
+        if (eventUpdateDto.getImages() != null) {
+            List<EventImage> eventImageList = eventImageRepository.findAllByEvent(event);
+            eventImageRepository.deleteAll(eventImageList);
+            saveEventImages(eventUpdateDto.getImages(), event);
+        }
+        eventRepository.save(event);
+
+        return "이벤트 수정 완료";
+    }
+
+    public String DeleteEvent(Long eventId, Principal principal) {
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
+
+        if (event.getMember() != member)
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+
+        eventRepository.delete(event);
+
+        return "이벤트 삭제 완료";
+    }
 
 }
