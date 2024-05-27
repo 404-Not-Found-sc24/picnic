@@ -290,9 +290,6 @@ public class ManageService {
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-        
-        if (event.getMember() != member)
-            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         if (eventCreateDto.getTitle() != null) event.setTitle(eventCreateDto.getTitle());
         if (eventCreateDto.getContent() != null) event.setContent(eventCreateDto.getContent());
