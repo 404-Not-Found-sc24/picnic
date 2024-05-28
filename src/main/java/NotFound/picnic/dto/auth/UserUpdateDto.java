@@ -1,6 +1,5 @@
 package NotFound.picnic.dto.auth;
 
-import NotFound.picnic.enums.Role;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 

@@ -3,6 +3,7 @@ package NotFound.picnic.controller;
 import NotFound.picnic.dto.event.EventCreateDto;
 import NotFound.picnic.dto.event.EventDetailGetDto;
 import NotFound.picnic.dto.event.EventGetDto;
+import NotFound.picnic.dto.event.EventUpdateDto;
 import NotFound.picnic.enums.EventType;
 import NotFound.picnic.service.EventService;
 
@@ -64,8 +65,20 @@ public class EventController {
 
         return ResponseEntity.ok().body(Response);
     }
-    
 
+    @PreAuthorize("hasRole('COMPANY')")
+    @PatchMapping("/{eventId}")
+    public ResponseEntity<String> updateEvent(@PathVariable(name="eventId") Long eventId, EventUpdateDto eventUpdateDto, Principal principal) {
+        String res = eventService.UpdateEvent(eventId, eventUpdateDto, principal);
+        return ResponseEntity.ok().body(res);
+    }
+    
+    @PreAuthorize("hasRole('COMPANY')")
+    @DeleteMapping("/{eventId}")
+    public ResponseEntity<String> deleteEvent(@PathVariable(name="eventId") Long eventId, Principal principal) {
+        String res = eventService.DeleteEvent(eventId, principal);
+        return ResponseEntity.ok().body(res);
+    }
 
 
 

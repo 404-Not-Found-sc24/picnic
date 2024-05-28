@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.lang.reflect.Type;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +69,9 @@ public class ManageService {
     public String CreateAnnouncement (AnnounceCreateDto announceCreateDto, Principal principal) {
         Member member = memberRepository.findMemberByEmail(principal.getName())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
+        if(!announceCreateDto.getEventType().equals(EventType.ANNOUNCEMENT)){
+            throw new CustomException(ErrorCode.SERVER_ERROR);
+        }
         Event event = Event.builder()
                 .title(announceCreateDto.getTitle())
                 .content(announceCreateDto.getContent())
@@ -81,7 +84,6 @@ public class ManageService {
 
         return "공지 작성 완료";
     }
-    
 
     public String ApproveApproval(Long approvalId, ApproveDto approveDto){
         Approval approval = approvalRepository.findById(approvalId)
@@ -189,13 +191,8 @@ public class ManageService {
         return "장소 거절이 완료되었습니다.";
     }
 
-    public String UpdateAnnouncement(AnnounceCreateDto announceCreateDto, Long eventId, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
+    public String UpdateEvent(AnnounceCreateDto announceCreateDto, Long eventId) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-        if (event.getMember() != member)
-            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         if (announceCreateDto.getTitle() != null) event.setTitle(announceCreateDto.getTitle());
         if (announceCreateDto.getContent() != null) event.setContent(announceCreateDto.getContent());
@@ -210,7 +207,7 @@ public class ManageService {
             saveEventImages(announceCreateDto.getImages(), event);
         }
 
-        return "공지 수정 완료";
+        return "이벤트 수정 완료";
     }
 
     private void saveEventImages(List<MultipartFile> images, Event event) {
@@ -233,19 +230,14 @@ public class ManageService {
         
     }
 
-    public String DeleteAnnouncement(Long eventId, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public String DeleteEvent(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-
-        if (event.getMember() != member)
-            throw new CustomException(ErrorCode.NO_AUTHORITY);
 
         List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
         eventImageRepository.deleteAll(eventList);
         eventRepository.delete(event);
-        return "공지 삭제 완료";
+        return "이벤트 삭제 완료";
     }
 
     public List<UserGetDto> getUsers() {
@@ -284,83 +276,7 @@ public class ManageService {
         return "권한 변경 완료";
     }
 
-    public String UpdateEvent(EventCreateDto eventCreateDto, Long eventId, Principal principal) {
-        Member member = memberRepository.findMemberByEmail(principal.getName())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-        
-        if (event.getMember() != member)
-            throw new CustomException(ErrorCode.NO_AUTHORITY);
-
-        if (eventCreateDto.getTitle() != null) event.setTitle(eventCreateDto.getTitle());
-        if (eventCreateDto.getContent() != null) event.setContent(eventCreateDto.getContent());
-        //관리자가 LocationId를 수정시 해당 event와 event와 같은 locationId를 가진 member(COMPANY)도 수정합니다.
-        if (eventCreateDto.getLocationId() !=null) {
-            Member memberWhoCompany =memberRepository.findById(event.getLocation().getLocationId())
-                    .orElseThrow();
-            Location location =locationRepository.findById(eventCreateDto.getLocationId()).orElseThrow();
-            event.setLocation(location);
-            
-            memberWhoCompany.setLocationId(eventCreateDto.getLocationId());
-        }
-        eventRepository.save(event);
-
-        if (EventCreateDtoImagesCheck(eventCreateDto)) {
-            
-            List<EventImage> eventImageList = eventImageRepository.findAllByEvent(event);
-
-            if (EventImageListCheck(eventImageList))
-                eventImageRepository.deleteAll(eventImageList);
-                
-            
-            
-
-           saveEventImages(eventCreateDto.getImages(), event);
-        }
-
-       return returnMessage(event.getType(),"수정");
-    }
-
-    public String DeleteEvent(Long eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new CustomException(ErrorCode.EVENT_NOT_FOUND));
-
-        List<EventImage> eventList = eventImageRepository.findAllByEvent(event);
-        eventImageRepository.deleteAll(eventList);
-        eventRepository.delete(event);
-        return returnMessage(event.getType(),"삭제");
-    }
-
-    public boolean EventCreateDtoImagesCheck(EventCreateDto eventCreateDto){
-        List<MultipartFile> images = eventCreateDto.getImages();
-
-        return images.stream().anyMatch(image -> !image.isEmpty());
-    }
-
-    public boolean EventImageListCheck(List<EventImage> eventImageList){
-
-        return eventImageList.stream().anyMatch(image -> !image.getImageUrl().isEmpty());
-    }
-
-    public String returnMessage(EventType eventType, String propose){
-        String message="이벤트";
-
-       if(eventType==EventType.EVENT){
-           ;
-       }
-
-       else if(eventType==EventType.PROMOTION){
-           message="홍보자료";
-       }
-       else if(eventType==EventType.ANNOUNCEMENT){
-           message="공지사항";
-       }
-
-       return String.format("%s(이)가 성공적으로 %s 되었습니다", message,propose);
-
-   }
+    
 
    public String UpdateUser(UserUpdateDto userUpdateDto, Long memberId) {
        Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -387,4 +303,137 @@ public class ManageService {
 
        return "삭제 완료";
    }
+   
+   public String CreateLocation(LocationCreateDto locationCreateDto){
+
+    String city = locationCreateDto.getAddress().split(" ")[0];
+        String[] strArray = {"서울특별시", "인천광역시", "대구광역시", "대전광역시", "부산광역시", "울산광역시", "세종특별자치시", "제주특별자치도"};
+        List<String> strList = new ArrayList<>(Arrays.asList(strArray));
+        if(!strList.contains(city)) {
+            city = city + " " +locationCreateDto.getAddress().split(" ")[1];
+        }
+
+    Location location = Location.builder()
+                .name(locationCreateDto.getName())
+                .address(locationCreateDto.getAddress())
+                .city(city)
+                .detail(locationCreateDto.getDetail())
+                .latitude(locationCreateDto.getLatitude())
+                .longitude(locationCreateDto.getLongitude())
+                .division(locationCreateDto.getDivision())
+                .phone(locationCreateDto.getPhone())
+                .build();
+        locationRepository.save(location);
+
+        switch(locationCreateDto.getDivision()){
+            case "숙박":
+                Accommodation accommodation = Accommodation.builder()
+                        .location(location)
+                        .build();
+                accommodationRepository.save(accommodation);
+                break;
+            case "문화시설":
+                Culture culture = Culture.builder()
+                        .location(location)
+                        .build();
+                cultureRepository.save(culture);
+                break;
+            case "축제 공연 행사":
+                Festival festival = Festival.builder()
+                        .location(location)
+                        .build();
+                festivalRepository.save(festival);
+                break;
+            case "레포츠":
+                Leisure leisure = Leisure.builder()
+                        .location(location)
+                        .build();
+                leisureRepository.save(leisure);
+                break;
+            case "음식점":
+                Restaurant restaurant = Restaurant.builder()
+                        .location(location)
+                        .build();
+                restaurantRepository.save(restaurant);
+                break;
+            case "쇼핑":
+                Shopping shopping = Shopping.builder()
+                        .location(location)
+                        .build();
+                shoppingRepository.save(shopping);
+                break;
+            case "관광지":
+                Tour tour = Tour.builder()
+                        .location(location)
+                        .build();
+                tourRepository.save(tour);
+                break;
+        }
+
+    List<MultipartFile> images = locationCreateDto.getImages();
+
+    saveLocationImages(images,location);
+
+    return "장소 생성 완료";
+   }
+
+   public String DeleteLocation(Long locationId) {
+    Location location = locationRepository.findById(locationId)
+            .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
+
+    List<LocationImage> locationImageList = locationImageRepostiory.findAllByLocation(location);
+    locationImageRepostiory.deleteAll(locationImageList);
+    switch(location.getDivision()){
+        case "숙박":
+            Accommodation accommodation = accommodationRepository.findByLocation_LocationId(location.getLocationId());
+            accommodationRepository.delete(accommodation);
+            break;
+        case "문화시설":
+            Culture culture = cultureRepository.findByLocation_LocationId(location.getLocationId());
+            cultureRepository.delete(culture);
+            break;
+        case "축제 공연 행사":
+            Festival festival = festivalRepository.findByLocation_LocationId(location.getLocationId());
+            festivalRepository.delete(festival);
+            break;
+        case "레포츠":
+            Leisure leisure = leisureRepository.findByLocation_LocationId(location.getLocationId());
+            leisureRepository.delete(leisure);
+            break;
+        case "음식점":
+            Restaurant restaurant = restaurantRepository.findByLocation_LocationId(location.getLocationId());
+            restaurantRepository.delete(restaurant);
+            break;
+        case "쇼핑":
+            Shopping shopping = shoppingRepository.findByLocation_LocationId(location.getLocationId());
+            shoppingRepository.delete(shopping);
+            break;
+        case "관광지":
+            Tour tour = tourRepository.findByLocation_LocationId(location.getLocationId());
+            tourRepository.delete(tour);
+            break;
+    }
+    locationRepository.delete(location);
+    return "장소 삭제 완료";
+}
+
+private void saveLocationImages(List<MultipartFile> images, Location location) {
+    images.forEach(image -> {
+        try {
+            if (!image.isEmpty()){
+            String url = s3Upload.uploadFiles(image, "location");
+            LocationImage img = LocationImage.builder()
+                    .location(location)
+                    .imageUrl(url)
+                    .build();
+
+            locationImageRepostiory.save(img);
+            }
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
+        }
+
+    });
+
+}
 }
