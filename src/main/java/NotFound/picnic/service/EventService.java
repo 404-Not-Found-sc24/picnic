@@ -44,7 +44,6 @@ public class EventService {
                 .createdDate(event.getCreateAt())
                 .updatedDate(event.getModifiedAt())
                 .memberName(event.getMember().getName())
-                .locationId(event.getLocation().getLocationId())
                 .build())
                 .collect(Collectors.toList());
                 
