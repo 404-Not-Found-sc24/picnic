@@ -14,4 +14,5 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     Optional <Image> findTopImageUrlByDiary_DiaryId(Long diaryId);
 
     List<Image> findAllByDiary(Diary diary);
+
 }

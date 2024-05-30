@@ -204,6 +204,9 @@ public class ScheduleService {
             throw new CustomException(ErrorCode.NO_AUTHORITY);
         }
 
+        Optional<Image> image = imageRepository.findTopByDiary(diary);
+        image.ifPresent(imageRepository::delete);
+
         diaryRepository.delete(diary);
 
         return "일기 삭제 완료";
