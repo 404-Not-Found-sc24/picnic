@@ -276,34 +276,7 @@ public class ManageService {
         return "권한 변경 완료";
     }
 
-    public boolean EventCreateDtoImagesCheck(EventCreateDto eventCreateDto){
-        List<MultipartFile> images = eventCreateDto.getImages();
-
-        return images.stream().anyMatch(image -> !image.isEmpty());
-    }
-
-    public boolean EventImageListCheck(List<EventImage> eventImageList){
-
-        return eventImageList.stream().anyMatch(image -> !image.getImageUrl().isEmpty());
-    }
-
-    public String returnMessage(EventType eventType, String propose){
-        String message="이벤트";
-
-       if(eventType==EventType.EVENT){
-           ;
-       }
-
-       else if(eventType==EventType.PROMOTION){
-           message="홍보자료";
-       }
-       else if(eventType==EventType.ANNOUNCEMENT){
-           message="공지사항";
-       }
-
-       return String.format("%s(이)가 성공적으로 %s 되었습니다", message,propose);
-
-   }
+    
 
    public String UpdateUser(UserUpdateDto userUpdateDto, Long memberId) {
        Member member = memberRepository.findById(memberId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -330,4 +303,137 @@ public class ManageService {
 
        return "삭제 완료";
    }
+   
+   public String CreateLocation(LocationCreateDto locationCreateDto){
+
+    String city = locationCreateDto.getAddress().split(" ")[0];
+        String[] strArray = {"서울특별시", "인천광역시", "대구광역시", "대전광역시", "부산광역시", "울산광역시", "세종특별자치시", "제주특별자치도"};
+        List<String> strList = new ArrayList<>(Arrays.asList(strArray));
+        if(!strList.contains(city)) {
+            city = city + " " +locationCreateDto.getAddress().split(" ")[1];
+        }
+
+    Location location = Location.builder()
+                .name(locationCreateDto.getName())
+                .address(locationCreateDto.getAddress())
+                .city(city)
+                .detail(locationCreateDto.getDetail())
+                .latitude(locationCreateDto.getLatitude())
+                .longitude(locationCreateDto.getLongitude())
+                .division(locationCreateDto.getDivision())
+                .phone(locationCreateDto.getPhone())
+                .build();
+        locationRepository.save(location);
+
+        switch(locationCreateDto.getDivision()){
+            case "숙박":
+                Accommodation accommodation = Accommodation.builder()
+                        .location(location)
+                        .build();
+                accommodationRepository.save(accommodation);
+                break;
+            case "문화시설":
+                Culture culture = Culture.builder()
+                        .location(location)
+                        .build();
+                cultureRepository.save(culture);
+                break;
+            case "축제 공연 행사":
+                Festival festival = Festival.builder()
+                        .location(location)
+                        .build();
+                festivalRepository.save(festival);
+                break;
+            case "레포츠":
+                Leisure leisure = Leisure.builder()
+                        .location(location)
+                        .build();
+                leisureRepository.save(leisure);
+                break;
+            case "음식점":
+                Restaurant restaurant = Restaurant.builder()
+                        .location(location)
+                        .build();
+                restaurantRepository.save(restaurant);
+                break;
+            case "쇼핑":
+                Shopping shopping = Shopping.builder()
+                        .location(location)
+                        .build();
+                shoppingRepository.save(shopping);
+                break;
+            case "관광지":
+                Tour tour = Tour.builder()
+                        .location(location)
+                        .build();
+                tourRepository.save(tour);
+                break;
+        }
+
+    List<MultipartFile> images = locationCreateDto.getImages();
+
+    saveLocationImages(images,location);
+
+    return "장소 생성 완료";
+   }
+
+   public String DeleteLocation(Long locationId) {
+    Location location = locationRepository.findById(locationId)
+            .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
+
+    List<LocationImage> locationImageList = locationImageRepostiory.findAllByLocation(location);
+    locationImageRepostiory.deleteAll(locationImageList);
+    switch(location.getDivision()){
+        case "숙박":
+            Accommodation accommodation = accommodationRepository.findByLocation_LocationId(location.getLocationId());
+            accommodationRepository.delete(accommodation);
+            break;
+        case "문화시설":
+            Culture culture = cultureRepository.findByLocation_LocationId(location.getLocationId());
+            cultureRepository.delete(culture);
+            break;
+        case "축제 공연 행사":
+            Festival festival = festivalRepository.findByLocation_LocationId(location.getLocationId());
+            festivalRepository.delete(festival);
+            break;
+        case "레포츠":
+            Leisure leisure = leisureRepository.findByLocation_LocationId(location.getLocationId());
+            leisureRepository.delete(leisure);
+            break;
+        case "음식점":
+            Restaurant restaurant = restaurantRepository.findByLocation_LocationId(location.getLocationId());
+            restaurantRepository.delete(restaurant);
+            break;
+        case "쇼핑":
+            Shopping shopping = shoppingRepository.findByLocation_LocationId(location.getLocationId());
+            shoppingRepository.delete(shopping);
+            break;
+        case "관광지":
+            Tour tour = tourRepository.findByLocation_LocationId(location.getLocationId());
+            tourRepository.delete(tour);
+            break;
+    }
+    locationRepository.delete(location);
+    return "장소 삭제 완료";
+}
+
+private void saveLocationImages(List<MultipartFile> images, Location location) {
+    images.forEach(image -> {
+        try {
+            if (!image.isEmpty()){
+            String url = s3Upload.uploadFiles(image, "location");
+            LocationImage img = LocationImage.builder()
+                    .location(location)
+                    .imageUrl(url)
+                    .build();
+
+            locationImageRepostiory.save(img);
+            }
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
+        }
+
+    });
+
+}
 }

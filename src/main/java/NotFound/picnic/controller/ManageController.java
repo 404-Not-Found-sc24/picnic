@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
@@ -89,6 +88,20 @@ public class ManageController {
     @DeleteMapping("/member/{memberId}")
     public ResponseEntity<String> deleteUser(@PathVariable(name="memberId") Long memberId) {
         String res = manageService.DeleteUser(memberId);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/location")
+    public ResponseEntity<String> createLocation(LocationCreateDto locationCreateDto){
+        String response = manageService.CreateLocation(locationCreateDto);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/location/{locationId}")
+    public ResponseEntity<String> deleteLocation(@PathVariable(name="locationId") Long locationId) {
+        String res = manageService.DeleteLocation(locationId);
         return ResponseEntity.ok().body(res);
     }
 }
