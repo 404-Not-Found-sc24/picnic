@@ -19,11 +19,11 @@ public interface LocationRepository  extends JpaRepository<Location, Long> {
 
     Optional<List<Location>> findAllByCity(String city);
 
-    @Query(value="select * from location where (city like concat('%', :city, '%')) and (name like concat('%',:keyword,'%') or address like concat('%',:keyword,'%')) order by name, location_id desc limit 20 offset :lastIdx", nativeQuery = true)
-    Optional<List<Location>> findByCityAndKeyword(@Param("city") String city, @Param("keyword") String keyword, @Param("lastIdx") int lastIdx);
+    @Query(value="select * from location where (city like concat('%', :city, '%')) and division like concat('%', :division, '%') and (name like concat('%',:keyword,'%') or address like concat('%',:keyword,'%')) order by name, location_id desc limit 20 offset :lastIdx", nativeQuery = true)
+    Optional<List<Location>> findByCityAndKeyword(@Param("city") String city, @Param("division") String division, @Param("keyword") String keyword, @Param("lastIdx") int lastIdx);
 
-    @Query(value="select * from location where city like concat('%', :keyword, '%') or name like concat('%',:keyword,'%') or address like concat('%',:keyword,'%') order by name, location_id desc limit 20 offset :lastIdx", nativeQuery = true)
-    Optional<List<Location>> findByKeyword(@Param("keyword") String keyword, @Param("lastIdx") int lastIdx);
+    @Query(value="select * from location where division like concat('%', :division, '%') and (city like concat('%', :keyword, '%') or name like concat('%',:keyword,'%') or address like concat('%',:keyword,'%')) order by name, location_id desc limit 20 offset :lastIdx", nativeQuery = true)
+    Optional<List<Location>> findByKeyword(@Param("keyword") String keyword, @Param("division") String division, @Param("lastIdx") int lastIdx);
 
     @Query("select distinct p.location from Place p where p.schedule = :schedule")
     List<Location> findLocationsBySchedule(Schedule schedule);

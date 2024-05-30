@@ -41,13 +41,14 @@ public class TourService {
     private final S3Upload s3Upload;
 
 
-    public List<LocationGetDto> GetLocations(String city, String keyword, int lastIdx) {
+    public List<LocationGetDto> GetLocations(String city, String keyword, String division, int lastIdx) {
         Optional<List<Location>> locations;
+        log.info(division);
         if (city != null) {
-            locations = locationRepository.findByCityAndKeyword(city, keyword, lastIdx);
+            locations = locationRepository.findByCityAndKeyword(city, division, keyword, lastIdx);
         }
         else {
-            locations = locationRepository.findByKeyword(keyword, lastIdx);
+            locations = locationRepository.findByKeyword(keyword, division, lastIdx);
         }
 
         return locations.map(locationList -> locationList.stream()
