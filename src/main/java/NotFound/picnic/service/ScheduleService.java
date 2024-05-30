@@ -373,4 +373,22 @@ public class ScheduleService {
         return "수정 완료";
     }
 
+    public String ChangeSharing(Long scheduleId, Principal principal) throws CustomException{
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(!schedule.getMember().equals(member)){
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+        }
+
+        schedule.setShare(!schedule.isShare());
+        scheduleRepository.save(schedule);
+
+        if(schedule.isShare()){
+            return "일정 공개 처리 완료";
+        }
+        return "일정 비공개 처리 완료";
+    }
 }
