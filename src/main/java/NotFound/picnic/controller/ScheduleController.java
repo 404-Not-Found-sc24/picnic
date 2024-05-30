@@ -40,6 +40,13 @@ public class ScheduleController {
     }
 
     @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/diary/{diaryId}")
+    public ResponseEntity<String> deleteDiary(@PathVariable(name="diaryId") Long diaryId, Principal principal){
+        String res = scheduleService.DeleteDiary(diaryId, principal);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/schedules/{scheduleId}")
     public ResponseEntity<List<SchedulePlaceDiaryGetDto>> getSchedulePlaceDiary(@PathVariable(name="scheduleId") Long scheduleId, Principal principal){
         List<SchedulePlaceDiaryGetDto> schedulePlaceDiaryList = scheduleService.getSchedulePlaceDiary(scheduleId, principal);
