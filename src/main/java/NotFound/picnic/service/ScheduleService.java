@@ -193,6 +193,21 @@ public class ScheduleService {
         return "일기 저장 완료";
     }
 
+    public String DeleteDiary(Long diaryId, Principal principal) throws CustomException {
+    Diary diary = diaryRepository.findById(diaryId)
+            .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+    Member member = memberRepository.findMemberByEmail(principal.getName())
+            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+    if(!placeRepository.findByDiary_DiaryId(diaryId).getSchedule().getMember().equals(member)){
+        throw new CustomException(ErrorCode.NO_AUTHORITY);
+    }
+
+    diaryRepository.delete(diary);
+
+        return "일기 삭제 완료";
+    }
+
     // 여행 일정 보기 in MyPage
     public List<List<PlaceGetDto>> getPlaces (Long scheduleId) {
 
