@@ -193,6 +193,48 @@ public class ScheduleService {
         return "일기 저장 완료";
     }
 
+    public String UpdateDiary(Long diaryId, DiaryCreateDto diaryCreateDto, Principal principal) throws CustomException{
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(!placeRepository.findByDiary_DiaryId(diaryId).getSchedule().getMember().equals(member)){
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+        }
+
+        Optional<Image> image_prob = imageRepository.findTopImageUrlByDiary_DiaryId(diaryId);
+        if(image_prob.isPresent()){
+            imageRepository.deleteByDiary_DiaryId(diaryId);
+        }
+
+
+        diary.setContent(diaryCreateDto.getContent());
+        diary.setTitle(diaryCreateDto.getTitle());
+        diary.setWeather(diaryCreateDto.getWeather());
+
+        List<MultipartFile> images = diaryCreateDto.getImages();
+        if (images != null) {
+            images.forEach(image -> {
+                try {
+                    String url = s3Upload.uploadFiles(image, "diary");
+                    Image img = Image.builder()
+                            .diary(diary)
+                            .imageUrl(url)
+                            .build();
+
+                    imageRepository.save(img);
+                } catch (Exception e) {
+                    throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
+                }
+            });
+
+        }
+
+
+        return "일기 수정 완료";
+    }
+
     @Transactional
     public String DeleteDiary(Long diaryId, Principal principal) throws CustomException {
         Diary diary = diaryRepository.findById(diaryId)
