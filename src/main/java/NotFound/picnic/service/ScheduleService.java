@@ -204,7 +204,8 @@ public class ScheduleService {
             throw new CustomException(ErrorCode.NO_AUTHORITY);
         }
 
-        diaryRepository.deleteDiaryByDiaryId(diaryId);
+        imageRepository.deleteByDiary_DiaryId(diaryId);
+        diaryRepository.deleteByDiaryId(diaryId);
 
         return "일기 삭제 완료";
     }
