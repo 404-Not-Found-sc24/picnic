@@ -30,7 +30,7 @@ public class Diary {
     @ToString.Exclude
     private Place place;
 
-    @OneToMany(mappedBy = "diary", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "diary", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<Image> imageList;
 }

@@ -206,7 +206,6 @@ public class ScheduleService {
 
         Optional<Image> image = imageRepository.findTopByDiary(diary);
         image.ifPresent(imageRepository::delete);
-
         diaryRepository.delete(diary);
 
         return "일기 삭제 완료";
