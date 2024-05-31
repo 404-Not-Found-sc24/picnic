@@ -40,6 +40,13 @@ public class ScheduleController {
     }
 
     @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/diary/{diaryId}")
+    public ResponseEntity<String> updateDiary(@PathVariable(name="diaryId") Long diaryId,DiaryCreateDto diaryCreateDto, Principal principal) throws CustomException{
+        String res = scheduleService.UpdateDiary(diaryId, diaryCreateDto, principal);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/diary/{diaryId}")
     public ResponseEntity<String> deleteDiary(@PathVariable(name="diaryId") Long diaryId, Principal principal){
         String res = scheduleService.DeleteDiary(diaryId, principal);
