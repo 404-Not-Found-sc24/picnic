@@ -6,7 +6,7 @@
 **국내 여행 계획 및 일기 기록 서비스**
 <br/><br/>
 ## 서비스 URL
-https://nadeuli.com
+https://nadueli.com
 <br/><br/>
 ## 백엔드 개발 프레임워크
 ### 백엔드
