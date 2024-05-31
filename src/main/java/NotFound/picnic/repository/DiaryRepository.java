@@ -21,5 +21,8 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     @Query("select d from Diary d where d.place in (select p from Place p where p.schedule = :schedule)")
     Optional<List<Diary>> findAllBySchedule(@Param("schedule") Schedule schedule);
 
+    @Query("delete from Diary where diaryId = :diaryId")
+    boolean deleteDiaryByDiaryId(@Param("diaryId") Long diaryId);
+
     Optional<Diary> findByPlace(Place place);
 }
