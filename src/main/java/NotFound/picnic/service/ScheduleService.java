@@ -203,6 +203,7 @@ public class ScheduleService {
         if(!placeRepository.findByDiary_DiaryId(diaryId).getSchedule().getMember().equals(member)){
             throw new CustomException(ErrorCode.NO_AUTHORITY);
         }
+
         imageRepository.deleteByDiary_DiaryId(diaryId);
         diaryRepository.deleteByDiaryId(diaryId);
 
