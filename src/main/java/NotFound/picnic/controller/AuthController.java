@@ -98,4 +98,10 @@ public class AuthController {
         String res = authService.reissuePassword(reissuePasswordDto);
         return ResponseEntity.status(HttpStatus.OK).body(res);
     }
+
+    @PostMapping("/find-email")
+    public ResponseEntity<FindEmailResponseDto> findEmail (@RequestBody FindEmailRequestDto findEmailRequestDto) {
+        FindEmailResponseDto findEmailResponseDto = authService.FindEmail(findEmailRequestDto);
+        return ResponseEntity.status(HttpStatus.OK).body(findEmailResponseDto);
+    }
 }
