@@ -209,4 +209,14 @@ public class AuthService {
         }
         return "비밀번호 재설정 완료";
     }
+
+    public FindEmailResponseDto FindEmail (FindEmailRequestDto findEmailRequestDto) {
+        Member member = memberRepository.findMemberByNameAndPhone(findEmailRequestDto.getName(), findEmailRequestDto.getPhone());
+        if (member == null)
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        return FindEmailResponseDto.builder()
+                .email(member.getEmail())
+                .build();
+    }
 }
