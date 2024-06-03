@@ -3,6 +3,7 @@ package NotFound.picnic.service;
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.event.AnnounceCreateDto;
 import NotFound.picnic.dto.event.EventCreateDto;
+import NotFound.picnic.dto.event.EventGetDto;
 import NotFound.picnic.dto.manage.*;
 import NotFound.picnic.enums.*;
 import NotFound.picnic.exception.CustomException;
@@ -43,8 +44,8 @@ public class ManageService {
     private final TourRepository tourRepository;
     private final S3Upload s3Upload;
 
-    public List<ApprovalDto> GetApprovalList(Principal principal){
-        List<Approval> approvals = approvalRepository.findAll();
+    public List<ApprovalDto> GetApprovalList(String keyword, Principal principal){
+        List<Approval> approvals = approvalRepository.findApprovals(keyword);
         List<ApprovalDto> approvalDtos = new ArrayList<>();
         for(Approval approval:approvals){
             ApprovalDto approvalDto = ApprovalDto.builder()
@@ -240,8 +241,8 @@ public class ManageService {
         return "이벤트 삭제 완료";
     }
 
-    public List<UserGetDto> getUsers() {
-        List<Member> memberList = memberRepository.findAll();
+    public List<UserGetDto> getUsers(String keyword) {
+        List<Member> memberList = memberRepository.findMembersBySearch(keyword);
 
         return memberList.stream().map(member -> UserGetDto.builder()
                 .memberId(member.getMemberId())
@@ -417,6 +418,25 @@ public class ManageService {
     return "장소 삭제 완료";
 }
 
+public List<EventGetDto> FindEvent(String div, String keyword){
+
+        List<Event> events = eventRepository.findByKeyword(div, keyword);
+        List<EventGetDto> li = new ArrayList<>();
+        events.forEach(event -> {
+            EventGetDto eventGetDto = EventGetDto.builder()
+                    .eventId(event.getEventId())
+                    .content(event.getContent())
+                    .title(event.getTitle())
+                    .createdDate(event.getCreateAt())
+                    .updatedDate(event.getModifiedAt())
+                    .memberName(event.getMember().getName())
+                    .build();
+            li.add(eventGetDto);
+        });
+
+        return li;
+}
+
 private void saveLocationImages(List<MultipartFile> images, Location location) {
     images.forEach(image -> {
         try {
@@ -436,4 +456,5 @@ private void saveLocationImages(List<MultipartFile> images, Location location) {
     });
 
 }
+
 }

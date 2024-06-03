@@ -193,6 +193,7 @@ public class ScheduleService {
         return "일기 저장 완료";
     }
 
+    @Transactional
     public String UpdateDiary(Long diaryId, DiaryCreateDto diaryCreateDto, Principal principal) throws CustomException{
         Diary diary = diaryRepository.findById(diaryId)
                 .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
@@ -204,7 +205,7 @@ public class ScheduleService {
         }
 
         Optional<Image> image_prob = imageRepository.findTopImageUrlByDiary_DiaryId(diaryId);
-        if(image_prob.isPresent()){
+        if(image_prob.isPresent() && diaryCreateDto.getImages() != null){
             imageRepository.deleteByDiary_DiaryId(diaryId);
         }
 
