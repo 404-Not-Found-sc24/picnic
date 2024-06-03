@@ -44,9 +44,8 @@ public class ManageService {
     private final TourRepository tourRepository;
     private final S3Upload s3Upload;
 
-    public List<ApprovalDto> GetApprovalList(String keyword, String division, String state, Principal principal){
-        List<Approval> approvals = approvalRepository.findApprovals(keyword, division, state);
-        log.info("name", keyword, "division", division, "state", state);
+    public List<ApprovalDto> GetApprovalList(String keyword, Principal principal){
+        List<Approval> approvals = approvalRepository.findApprovals(keyword);
         List<ApprovalDto> approvalDtos = new ArrayList<>();
         for(Approval approval:approvals){
             ApprovalDto approvalDto = ApprovalDto.builder()
@@ -242,8 +241,8 @@ public class ManageService {
         return "이벤트 삭제 완료";
     }
 
-    public List<UserGetDto> getUsers() {
-        List<Member> memberList = memberRepository.findAll();
+    public List<UserGetDto> getUsers(String keyword) {
+        List<Member> memberList = memberRepository.findMembersBySearch(keyword);
 
         return memberList.stream().map(member -> UserGetDto.builder()
                 .memberId(member.getMemberId())

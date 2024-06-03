@@ -27,10 +27,8 @@ public class ManageController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/approval")
     public ResponseEntity<List<ApprovalDto>> getApprovalList(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword,
-                                                             @RequestParam(required = false, defaultValue = "", name="division") String division,
-                                                             @RequestParam(required = false, defaultValue = "", name="state") String state,
                                                              Principal principal){
-        List<ApprovalDto> approvalDto = manageService.GetApprovalList(keyword, division, state, principal);
+        List<ApprovalDto> approvalDto = manageService.GetApprovalList(keyword, principal);
         return ResponseEntity.ok().body(approvalDto);
     }
 
@@ -72,8 +70,8 @@ public class ManageController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/member")
-    public ResponseEntity<List<UserGetDto>> getUsers() {
-        List<UserGetDto> userGetDtoList = manageService.getUsers();
+    public ResponseEntity<List<UserGetDto>> getUsers(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword) {
+        List<UserGetDto> userGetDtoList = manageService.getUsers(keyword);
         return ResponseEntity.ok().body(userGetDtoList);
     }
 
