@@ -3,6 +3,7 @@ package NotFound.picnic.controller;
 import NotFound.picnic.dto.event.AnnounceCreateDto;
 import NotFound.picnic.dto.event.EventCreateDto;
 import NotFound.picnic.dto.manage.*;
+import NotFound.picnic.enums.State;
 import NotFound.picnic.service.ManageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +23,11 @@ public class ManageController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/approval")
-    public ResponseEntity<List<ApprovalDto>> getApprovalList(Principal principal){
-        List<ApprovalDto> approvalDto = manageService.GetApprovalList(principal);
+    public ResponseEntity<List<ApprovalDto>> getApprovalList(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword,
+                                                             @RequestParam(required = false, defaultValue = "", name="division") String division,
+                                                             @RequestParam(required = false, defaultValue = "", name="state") String state,
+                                                             Principal principal){
+        List<ApprovalDto> approvalDto = manageService.GetApprovalList(keyword, division, state, principal);
         return ResponseEntity.ok().body(approvalDto);
     }
 

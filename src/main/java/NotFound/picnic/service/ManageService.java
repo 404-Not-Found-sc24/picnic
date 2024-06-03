@@ -43,8 +43,9 @@ public class ManageService {
     private final TourRepository tourRepository;
     private final S3Upload s3Upload;
 
-    public List<ApprovalDto> GetApprovalList(Principal principal){
-        List<Approval> approvals = approvalRepository.findAll();
+    public List<ApprovalDto> GetApprovalList(String keyword, String division, String state, Principal principal){
+        List<Approval> approvals = approvalRepository.findApprovals(keyword, division, state);
+        log.info("name", keyword, "division", division, "state", state);
         List<ApprovalDto> approvalDtos = new ArrayList<>();
         for(Approval approval:approvals){
             ApprovalDto approvalDto = ApprovalDto.builder()
@@ -436,4 +437,5 @@ private void saveLocationImages(List<MultipartFile> images, Location location) {
     });
 
 }
+
 }
