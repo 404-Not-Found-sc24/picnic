@@ -29,7 +29,10 @@ public enum ErrorCode {
     IMAGE_UPLOAD_FAILED("이미지를 업로드 하는 도중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     APPROVAL_NOT_FOUND("해당하는 승인 요청 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     APPROVAL_FAILED("승인/거절할 수 없는 장소입니다.", HttpStatus.BAD_REQUEST),
-    SERVER_ERROR("서버에서 에러가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    SERVER_ERROR("서버에서 에러가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    EMAIL_CHECK_FAILED("이메일을 인증하는 도중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    NO_SUCH_ALGORITHM("이메일 인증에서 해당하는 알고리즘을 찾을 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    CODE_FAILED("코드가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
 
 
 
