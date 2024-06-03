@@ -43,9 +43,9 @@ public class ManageService {
     private final TourRepository tourRepository;
     private final S3Upload s3Upload;
 
-    public List<ApprovalDto> GetApprovalList(String keyword, String division, String state, Principal principal){
-        List<Approval> approvals = approvalRepository.findApprovals(keyword, division, state);
-        log.info("name", keyword, "division", division, "state", state);
+    public List<ApprovalDto> GetApprovalList(String keyword, Principal principal){
+        List<Approval> approvals = approvalRepository.findApprovals(keyword);
+
         List<ApprovalDto> approvalDtos = new ArrayList<>();
         for(Approval approval:approvals){
             ApprovalDto approvalDto = ApprovalDto.builder()

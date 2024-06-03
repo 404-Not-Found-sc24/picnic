@@ -16,6 +16,11 @@ public interface ApprovalRepository extends JpaRepository<Approval, Long> {
     @NonNull
     List <Approval> findAll();
 
-    @Query(value="select * from approval where (name like concat('%', :keyword, '%') or address like concat('%', :keyword, '%')) and division like concat('%', :division, '%') and state like concat('%',:state,'%') order by name, approval_id", nativeQuery = true)
-    List<Approval> findApprovals(@Param("keyword") String keyword, @Param("division") String division, @Param("state") String state);
+    @Query(value="select * from approval " +
+            "where name like concat('%', :keyword, '%') " +
+            "or address like concat('%', :keyword, '%') " +
+            "or division like concat('%', :keyword, '%') " +
+            "or state like concat('%',:keyword,'%') " +
+            "order by name, approval_id", nativeQuery = true)
+    List<Approval> findApprovals(@Param("keyword") String keyword);
 }
