@@ -69,8 +69,8 @@ public class ManageController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/member")
-    public ResponseEntity<List<UserGetDto>> getUsers() {
-        List<UserGetDto> userGetDtoList = manageService.getUsers();
+    public ResponseEntity<List<UserGetDto>> getUsers(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword) {
+        List<UserGetDto> userGetDtoList = manageService.getUsers(keyword);
         return ResponseEntity.ok().body(userGetDtoList);
     }
 

@@ -241,8 +241,8 @@ public class ManageService {
         return "이벤트 삭제 완료";
     }
 
-    public List<UserGetDto> getUsers() {
-        List<Member> memberList = memberRepository.findAll();
+    public List<UserGetDto> getUsers(String keyword) {
+        List<Member> memberList = memberRepository.findMembersBySearch(keyword);
 
         return memberList.stream().map(member -> UserGetDto.builder()
                 .memberId(member.getMemberId())
