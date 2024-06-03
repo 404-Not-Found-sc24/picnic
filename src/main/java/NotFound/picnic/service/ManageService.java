@@ -46,7 +46,6 @@ public class ManageService {
 
     public List<ApprovalDto> GetApprovalList(String keyword, Principal principal){
         List<Approval> approvals = approvalRepository.findApprovals(keyword);
-
         List<ApprovalDto> approvalDtos = new ArrayList<>();
         for(Approval approval:approvals){
             ApprovalDto approvalDto = ApprovalDto.builder()

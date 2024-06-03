@@ -23,4 +23,5 @@ public interface ApprovalRepository extends JpaRepository<Approval, Long> {
             "or state like concat('%',:keyword,'%') " +
             "order by name, approval_id", nativeQuery = true)
     List<Approval> findApprovals(@Param("keyword") String keyword);
+
 }
