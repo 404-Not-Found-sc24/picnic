@@ -2,6 +2,8 @@ package NotFound.picnic.controller;
 
 import NotFound.picnic.dto.auth.*;
 import NotFound.picnic.dto.manage.UserGetDto;
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.service.AuthService;
 import NotFound.picnic.service.S3Upload;
 import jakarta.validation.Valid;
@@ -80,10 +82,18 @@ public class AuthController {
 
     @GetMapping("/duplicate")
     public ResponseEntity<String> duplicateEmail (@RequestParam(name="email") String email) throws BadRequestException {
-        if (authService.duplicateEmail(email))
-            return ResponseEntity.status(HttpStatus.OK).body("사용 가능한 아이디입니다");
+        if (authService.duplicateEmail(email)) {
+            String res = authService.EmailCheckRequest(email);
+            return ResponseEntity.status(HttpStatus.OK).body(res);
+        }
         else
-            throw new BadRequestException("이미 존재하는 아이디입니다");
+            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
+    }
+
+    @PostMapping("/emailCheck")
+    public ResponseEntity<String> emailCheck (@RequestParam(name="email") String email, @RequestParam(name="code") String code) {
+        String res = authService.EmailCheck(email, code);
+        return ResponseEntity.status(HttpStatus.OK).body(res);
     }
 
     @PatchMapping("/change-password")
