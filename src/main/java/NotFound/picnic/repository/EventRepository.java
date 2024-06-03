@@ -17,7 +17,7 @@ public interface EventRepository extends JpaRepository<Event, Long>{
     List<Event> findAllByType(EventType  type);
     Optional<Event> findByEventIdAndType(Long id, EventType type);
 
-    @Query(value="select * from Event where type like concat('%', :div, '%') and (content like concat('%', :keyword, '%') or title like concat('%',:keyword,'%')) order by title", nativeQuery = true)
+    @Query(value="select * from event where type like concat('%', :div, '%') and (content like concat('%', :keyword, '%') or title like concat('%',:keyword,'%')) order by title", nativeQuery = true)
     List<Event> findByKeyword(@Param("div") String div, @Param("keyword") String keyword);
 
 }
