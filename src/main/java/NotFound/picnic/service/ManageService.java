@@ -3,6 +3,7 @@ package NotFound.picnic.service;
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.event.AnnounceCreateDto;
 import NotFound.picnic.dto.event.EventCreateDto;
+import NotFound.picnic.dto.event.EventGetDto;
 import NotFound.picnic.dto.manage.*;
 import NotFound.picnic.enums.*;
 import NotFound.picnic.exception.CustomException;
@@ -416,6 +417,25 @@ public class ManageService {
     }
     locationRepository.delete(location);
     return "장소 삭제 완료";
+}
+
+public List<EventGetDto> FindEvent(String div, String keyword){
+
+        List<Event> events = eventRepository.findByKeyword(div, keyword);
+        List<EventGetDto> li = new ArrayList<>();
+        events.forEach(event -> {
+            EventGetDto eventGetDto = EventGetDto.builder()
+                    .eventId(event.getEventId())
+                    .content(event.getContent())
+                    .title(event.getTitle())
+                    .createdDate(event.getCreateAt())
+                    .updatedDate(event.getModifiedAt())
+                    .memberName(event.getMember().getName())
+                    .build();
+            li.add(eventGetDto);
+        });
+
+        return li;
 }
 
 private void saveLocationImages(List<MultipartFile> images, Location location) {
