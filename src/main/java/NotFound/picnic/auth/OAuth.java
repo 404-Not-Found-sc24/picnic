@@ -103,7 +103,6 @@ public class OAuth {
 
             if (responseBody.has("email")) {
 
-                log.info("resP"+responseBody.toString());
             return UserInfoGetDto.builder()
                     .id(responseBody.get("id").asText())
                     .email(responseBody.get("email").asText())
