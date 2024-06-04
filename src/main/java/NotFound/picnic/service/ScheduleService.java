@@ -1,6 +1,7 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
+import NotFound.picnic.dto.auth.LoginResponseDto;
 import NotFound.picnic.dto.schedule.*;
 import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.exception.ErrorCode;
@@ -155,7 +156,7 @@ public class ScheduleService {
 
 
     // 여행 일기 생성
-    public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) {
+    public DiaryResponseDto createDiary(Long placeId, DiaryCreateDto diaryCreateDto) {
 
         Place place = placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 
@@ -169,7 +170,7 @@ public class ScheduleService {
                 .weather(diaryCreateDto.getWeather())
                 .build();
 
-        diaryRepository.save(diary);
+        Long diaryId = diaryRepository.save(diary).getDiaryId();
 
         List<MultipartFile> images = diaryCreateDto.getImages();
         if (images != null) {
@@ -190,7 +191,8 @@ public class ScheduleService {
 
         }
 
-        return "일기 저장 완료";
+
+        return DiaryResponseDto.builder().diaryId(diaryId).build();
     }
 
     @Transactional
