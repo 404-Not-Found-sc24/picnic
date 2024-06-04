@@ -18,5 +18,4 @@ public class UserInfoGetDto {
     private String familyName;
     private String picture;
     private String locale;
-    private String hd;
 }
