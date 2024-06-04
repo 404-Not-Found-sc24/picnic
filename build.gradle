@@ -46,7 +46,7 @@ dependencies {
 	implementation 'org.codehaus.janino:janino:3.1.7'
 
 	// redis
-	// implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// smtp
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
