@@ -1,5 +1,6 @@
 package NotFound.picnic.auth;
 
+import NotFound.picnic.dto.auth.OAuthDto;
 import NotFound.picnic.dto.auth.UserInfoGetDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,16 +30,14 @@ public class OAuth {
     @Value("${spring.security.oauth2.client.registration.google.authorization-grant-type}")
     private String grantType;
 
-    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
-    private String redirectUri;
 
 
-    public String requestGoogleAccessToken(final String code) throws LoginException {
-        if (code == null || code.isEmpty()) {
+    public String requestGoogleAccessToken(OAuthDto oAuthDto) throws LoginException {
+        if (oAuthDto.getAuthorizationCode() == null || oAuthDto.getAuthorizationCode().isEmpty()) {
             throw new IllegalArgumentException("Authorization code cannot be null or empty");
         }
         String url = "https://oauth2.googleapis.com/token";
-        String decode = URLDecoder.decode(code, StandardCharsets.UTF_8);
+        String decode = URLDecoder.decode(oAuthDto.getAuthorizationCode(), StandardCharsets.UTF_8);
 
         // 헤더 설정
         HttpHeaders headers = new HttpHeaders();
@@ -47,7 +46,7 @@ public class OAuth {
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.add("code", decode);
         parameters.add("grant_type", grantType);
-        parameters.add("redirect_uri", redirectUri);
+        parameters.add("redirect_uri", oAuthDto.getRedirectUri());
 
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(parameters, headers);

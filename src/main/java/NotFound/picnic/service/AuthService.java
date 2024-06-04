@@ -65,7 +65,7 @@ public class AuthService {
 
 
     public LoginResponseDto socialLogin (OAuthDto oAuthDto) throws GeneralSecurityException, IOException {
-        String googleAccessToken = oAuth.requestGoogleAccessToken(oAuthDto.getAuthorizationCode());
+        String googleAccessToken = oAuth.requestGoogleAccessToken(oAuthDto);
         UserInfoGetDto userInfoGetDto = oAuth.printUserResource(googleAccessToken);
 
         Member member = memberRepository.findMemberByEmail(userInfoGetDto.getEmail())
