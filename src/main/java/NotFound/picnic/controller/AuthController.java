@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.Principal;
 
 @RestController
@@ -32,6 +33,11 @@ public class AuthController {
             ) {
         LoginResponseDto token = this.authService.login(loginRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(token);
+    }
+    @PostMapping("/oauth")
+    public ResponseEntity<LoginResponseDto> getAccessToken (@RequestBody OAuthDto oAuthDto) throws GeneralSecurityException, IOException {
+        LoginResponseDto loginResponse = authService.socialLogin(oAuthDto);
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
     @PostMapping("/sign-up")
@@ -114,4 +120,6 @@ public class AuthController {
         FindEmailResponseDto findEmailResponseDto = authService.FindEmail(findEmailRequestDto);
         return ResponseEntity.status(HttpStatus.OK).body(findEmailResponseDto);
     }
+
+
 }
