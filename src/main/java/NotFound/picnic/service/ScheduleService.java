@@ -112,7 +112,7 @@ public class ScheduleService {
                 .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         // 존재하는 schedule에 속하는 place list 조회
-        List<Place> places = placeRepository.findBySchedule(schedule);
+        List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(schedule);
 
         // SchedulePlaceDiaryGetDto로 매핑
         return places.stream().flatMap(place -> {
