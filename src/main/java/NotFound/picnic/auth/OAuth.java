@@ -121,7 +121,6 @@ public class OAuth {
                     .givenName(responseBody.get("given_name").asText())
                     .familyName(responseBody.get("family_name").asText())
                     .picture(responseBody.get("picture").asText())
-                    .locale(responseBody.get("locale").asText())
                     .build();
             } else {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자 이메일을 찾을 수 없습니다.");
