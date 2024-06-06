@@ -288,6 +288,7 @@ public class ScheduleService {
                                     .latitude(location.getLatitude())
                                     .longitude(location.getLongitude())
                                     .imageUrl(imageUrl)
+                                    .time(place.getTime())
                                     .build();
                         })
                         .toList();

@@ -1,12 +1,18 @@
 package NotFound.picnic.auth;
 
+import NotFound.picnic.domain.Member;
 import NotFound.picnic.dto.auth.OAuthDto;
 import NotFound.picnic.dto.auth.UserInfoGetDto;
+import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.exception.ErrorCode;
+import NotFound.picnic.repository.MemberRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -18,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 
 
 @Component
+@Slf4j
 public class OAuth {
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
@@ -30,6 +37,11 @@ public class OAuth {
     @Value("${spring.security.oauth2.client.registration.google.authorization-grant-type}")
     private String grantType;
 
+    private final MemberRepository memberRepository;
+
+    public OAuth(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
 
 
     public String requestGoogleAccessToken(OAuthDto oAuthDto) throws LoginException {
@@ -99,6 +111,8 @@ public class OAuth {
             }
 
             if (responseBody.has("email")) {
+                Member member = memberRepository.findMemberByEmail(responseBody.get("email").asText())
+                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             return UserInfoGetDto.builder()
                     .id(responseBody.get("id").asText())
                     .email(responseBody.get("email").asText())
@@ -107,8 +121,6 @@ public class OAuth {
                     .givenName(responseBody.get("given_name").asText())
                     .familyName(responseBody.get("family_name").asText())
                     .picture(responseBody.get("picture").asText())
-                    .locale(responseBody.get("locale").asText())
-                    .hd(responseBody.get("hd").asText())
                     .build();
             } else {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자 이메일을 찾을 수 없습니다.");
