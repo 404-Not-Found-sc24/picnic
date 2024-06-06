@@ -1,6 +1,7 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.auth.JwtUtil;
+import NotFound.picnic.auth.OAuth;
 import NotFound.picnic.domain.EmailCheck;
 import NotFound.picnic.domain.Member;
 import NotFound.picnic.dto.auth.*;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SecureRandom;
@@ -40,6 +42,7 @@ public class AuthService {
     private final S3Upload s3Upload;
     private final JavaMailSender javaMailSender;
     private final EmailCheckRedisRepository emailCheckRedisRepository;
+    private final OAuth oAuth;
 
     public LoginResponseDto login(LoginRequestDto dto) {
         String email = dto.getEmail();
@@ -56,6 +59,22 @@ public class AuthService {
             throw new CustomException(ErrorCode.LOGIN_FAILED);
         }
 
+        return getToken(member);
+
+    }
+
+
+    public LoginResponseDto socialLogin (OAuthDto oAuthDto) throws GeneralSecurityException, IOException {
+        String googleAccessToken = oAuth.requestGoogleAccessToken(oAuthDto);
+        UserInfoGetDto userInfoGetDto = oAuth.printUserResource(googleAccessToken);
+
+        Member member = memberRepository.findMemberByEmail(userInfoGetDto.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        return getToken(member);
+    }
+
+    public LoginResponseDto getToken (Member member) {
         UserInfoDto userInfoDto = UserInfoDto.builder()
                 .memberId(member.getMemberId())
                 .email(member.getEmail())
@@ -77,7 +96,6 @@ public class AuthService {
                 .Role(member.getRole().toString())
                 .phone(member.getPhone())
                 .build();
-
     }
 
     @Transactional
