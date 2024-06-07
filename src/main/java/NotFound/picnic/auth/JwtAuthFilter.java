@@ -64,10 +64,11 @@ public class JwtAuthFilter extends OncePerRequestFilter { // 한 번 실행 보�
     }
 
     private void handleAuthenticationException(HttpServletResponse response,String message ) throws IOException {
+
         if (response.isCommitted()) {
             return;
         }
-
+      
         response.setStatus(401);
         response.setContentType("application/json;charset=UTF-8");
 
