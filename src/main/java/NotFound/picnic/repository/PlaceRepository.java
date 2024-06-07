@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface PlaceRepository extends JpaRepository<Place, Long> {
     List<Place> findBySchedule(Schedule schedule);
+    List<Place> findByScheduleOrderByDateAscTimeAsc(Schedule schedule);
     Optional<List<Place>> findAllByLocation_LocationId(Long locationId);
 
     Optional<List<Place>> findAllBySchedule_ScheduleId(Long scheduleId);

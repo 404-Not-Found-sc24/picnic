@@ -13,4 +13,5 @@ public class PlaceGetDto {
     private Double latitude;
     private Double longitude;
     private String imageUrl;
+    private String time;
 }
