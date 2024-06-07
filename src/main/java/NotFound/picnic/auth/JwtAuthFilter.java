@@ -63,26 +63,4 @@ public class JwtAuthFilter extends OncePerRequestFilter { // 한 번 실행 보�
             throw new ServletException("Authentication error", ex);
         }
     }
-
-<<<<<<< HEAD
-=======
-    private void handleAuthenticationException(HttpServletResponse response,String message ) throws IOException {
-
-        if (response.isCommitted()) {
-            return;
-        }
-      
-        response.setStatus(401);
-        response.setContentType("application/json;charset=UTF-8");
-
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("status", "FAILED");
-        responseBody.put("message", message);
-
-        PrintWriter writer = response.getWriter();
-        writer.write(new ObjectMapper().writeValueAsString(responseBody));
-        writer.flush();
-        writer.close();
-    }
->>>>>>> 88bb8b80617d397038b0e8c6779d75d7cc06a3f5
 }
