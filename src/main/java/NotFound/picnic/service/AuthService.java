@@ -1,11 +1,14 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.auth.JwtUtil;
+import NotFound.picnic.auth.OAuth;
+import NotFound.picnic.domain.EmailCheck;
 import NotFound.picnic.domain.Member;
 import NotFound.picnic.dto.auth.*;
 import NotFound.picnic.dto.manage.UserGetDto;
 import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.exception.CustomException;
+import NotFound.picnic.repository.EmailCheckRedisRepository;
 import NotFound.picnic.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +21,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.SecureRandom;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 @Slf4j
@@ -33,6 +41,8 @@ public class AuthService {
     private final BCryptPasswordEncoder BCryptEncoder;
     private final S3Upload s3Upload;
     private final JavaMailSender javaMailSender;
+    private final EmailCheckRedisRepository emailCheckRedisRepository;
+    private final OAuth oAuth;
 
     public LoginResponseDto login(LoginRequestDto dto) {
         String email = dto.getEmail();
@@ -49,6 +59,22 @@ public class AuthService {
             throw new CustomException(ErrorCode.LOGIN_FAILED);
         }
 
+        return getToken(member);
+
+    }
+
+
+    public LoginResponseDto socialLogin (OAuthDto oAuthDto) throws GeneralSecurityException, IOException {
+        String googleAccessToken = oAuth.requestGoogleAccessToken(oAuthDto);
+        UserInfoGetDto userInfoGetDto = oAuth.printUserResource(googleAccessToken);
+
+        Member member = memberRepository.findMemberByEmail(userInfoGetDto.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        return getToken(member);
+    }
+
+    public LoginResponseDto getToken (Member member) {
         UserInfoDto userInfoDto = UserInfoDto.builder()
                 .memberId(member.getMemberId())
                 .email(member.getEmail())
@@ -67,9 +93,9 @@ public class AuthService {
                 .email(member.getEmail())
                 .name(member.getName())
                 .nickname(member.getNickname())
+                .Role(member.getRole().toString())
                 .phone(member.getPhone())
                 .build();
-
     }
 
     @Transactional
@@ -209,4 +235,71 @@ public class AuthService {
         }
         return "비밀번호 재설정 완료";
     }
+
+    public FindEmailResponseDto FindEmail (FindEmailRequestDto findEmailRequestDto) {
+        Member member = memberRepository.findMemberByNameAndPhone(findEmailRequestDto.getName(), findEmailRequestDto.getPhone());
+        if (member == null)
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+
+        return FindEmailResponseDto.builder()
+                .email(member.getEmail())
+                .build();
+    }
+
+    @Transactional
+    public String EmailCheckRequest(String email) {
+        String authCode = this.createCode();
+        EmailCheck existingEmailCheck = emailCheckRedisRepository.findByEmail(email);
+        if (existingEmailCheck != null) {
+            // 이미 해당 이메일이 Redis에 저장되어 있는 경우
+            existingEmailCheck.setCode(authCode);
+            emailCheckRedisRepository.save(existingEmailCheck);
+        } else {
+            EmailCheck emailCheck = new EmailCheck(email, authCode);
+            emailCheck.setId(UUID.randomUUID().toString());
+
+            emailCheckRedisRepository.save(emailCheck);
+        }
+
+        try {
+            SMTPMsgDto smtpMsgDto = SMTPMsgDto.builder()
+                    .address(email)
+                    .title(email + "님의 [나들이] 이메일 인증 안내 이메일 입니다.")
+                    .message("안녕하세요. [나들이] 이메일 인증 안내 관련 이메일 입니다. \n" + "[" + email + "]" + "님의 코드는 "
+                            + authCode + " 입니다.").build();
+            SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+            simpleMailMessage.setTo(smtpMsgDto.getAddress());
+            simpleMailMessage.setSubject(smtpMsgDto.getTitle());
+            simpleMailMessage.setText(smtpMsgDto.getMessage());
+            javaMailSender.send(simpleMailMessage);
+        } catch (Exception exception) {
+            log.error("이메일 인증 ::{} ", exception.getMessage());
+            throw new CustomException(ErrorCode.EMAIL_CHECK_FAILED);
+        }
+        return "이메일 전송 완료";
+    }
+
+    private String createCode() {
+        int lenth = 6;
+        try {
+            Random random = SecureRandom.getInstanceStrong();
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < lenth; i++) {
+                builder.append(random.nextInt(10));
+            }
+            return builder.toString();
+        } catch (NoSuchAlgorithmException e) {
+            log.debug("MemberService.createCode() exception occur");
+            throw new CustomException(ErrorCode.NO_SUCH_ALGORITHM);
+        }
+    }
+
+    public String EmailCheck(String email, String code) {
+        EmailCheck emailCheck = emailCheckRedisRepository.findByEmail(email);
+        if (emailCheck == null) throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        if (!Objects.equals(emailCheck.getCode(), code))
+            throw new CustomException(ErrorCode.CODE_FAILED);
+        return "인증 성공";
+    }
+
 }

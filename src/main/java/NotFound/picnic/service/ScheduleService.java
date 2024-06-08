@@ -1,6 +1,7 @@
 package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
+import NotFound.picnic.dto.auth.LoginResponseDto;
 import NotFound.picnic.dto.schedule.*;
 import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.exception.ErrorCode;
@@ -111,7 +112,7 @@ public class ScheduleService {
                 .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         // 존재하는 schedule에 속하는 place list 조회
-        List<Place> places = placeRepository.findBySchedule(schedule);
+        List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(schedule);
 
         // SchedulePlaceDiaryGetDto로 매핑
         return places.stream().flatMap(place -> {
@@ -155,7 +156,7 @@ public class ScheduleService {
 
 
     // 여행 일기 생성
-    public String createDiary(Long placeId, DiaryCreateDto diaryCreateDto) {
+    public DiaryResponseDto createDiary(Long placeId, DiaryCreateDto diaryCreateDto) {
 
         Place place = placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 
@@ -169,7 +170,7 @@ public class ScheduleService {
                 .weather(diaryCreateDto.getWeather())
                 .build();
 
-        diaryRepository.save(diary);
+        Long diaryId = diaryRepository.save(diary).getDiaryId();
 
         List<MultipartFile> images = diaryCreateDto.getImages();
         if (images != null) {
@@ -190,7 +191,68 @@ public class ScheduleService {
 
         }
 
-        return "일기 저장 완료";
+
+        return DiaryResponseDto.builder().diaryId(diaryId).build();
+    }
+
+    @Transactional
+    public String UpdateDiary(Long diaryId, DiaryCreateDto diaryCreateDto, Principal principal) throws CustomException{
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(!placeRepository.findByDiary_DiaryId(diaryId).getSchedule().getMember().equals(member)){
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+        }
+
+        Optional<Image> image_prob = imageRepository.findTopImageUrlByDiary_DiaryId(diaryId);
+        if(image_prob.isPresent() && diaryCreateDto.getImages() != null){
+            imageRepository.deleteByDiary_DiaryId(diaryId);
+        }
+
+
+        diary.setContent(diaryCreateDto.getContent());
+        diary.setTitle(diaryCreateDto.getTitle());
+        diary.setWeather(diaryCreateDto.getWeather());
+
+        List<MultipartFile> images = diaryCreateDto.getImages();
+        if (images != null) {
+            images.forEach(image -> {
+                try {
+                    String url = s3Upload.uploadFiles(image, "diary");
+                    Image img = Image.builder()
+                            .diary(diary)
+                            .imageUrl(url)
+                            .build();
+
+                    imageRepository.save(img);
+                } catch (Exception e) {
+                    throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
+                }
+            });
+
+        }
+
+
+        return "일기 수정 완료";
+    }
+
+    @Transactional
+    public String DeleteDiary(Long diaryId, Principal principal) throws CustomException {
+        Diary diary = diaryRepository.findById(diaryId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(!placeRepository.findByDiary_DiaryId(diaryId).getSchedule().getMember().equals(member)){
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+        }
+
+        imageRepository.deleteByDiary_DiaryId(diaryId);
+        diaryRepository.deleteByDiaryId(diaryId);
+
+        return "일기 삭제 완료";
     }
 
     // 여행 일정 보기 in MyPage
@@ -226,6 +288,7 @@ public class ScheduleService {
                                     .latitude(location.getLatitude())
                                     .longitude(location.getLongitude())
                                     .imageUrl(imageUrl)
+                                    .time(place.getTime())
                                     .build();
                         })
                         .toList();
@@ -373,4 +436,22 @@ public class ScheduleService {
         return "수정 완료";
     }
 
+    public String ChangeSharing(Long scheduleId, Principal principal) throws CustomException{
+        Schedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
+        Member member = memberRepository.findMemberByEmail(principal.getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(!schedule.getMember().equals(member)){
+            throw new CustomException(ErrorCode.NO_AUTHORITY);
+        }
+
+        schedule.setShare(!schedule.isShare());
+        scheduleRepository.save(schedule);
+
+        if(schedule.isShare()){
+            return "일정 공개 처리 완료";
+        }
+        return "일정 비공개 처리 완료";
+    }
 }

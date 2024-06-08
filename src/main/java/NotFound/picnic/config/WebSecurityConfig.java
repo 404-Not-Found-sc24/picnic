@@ -56,17 +56,16 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         // JwtAuthFilter를 UsernamePasswordAuthenticationFilter 앞에 추가
         http.addFilterBefore(new JwtAuthFilter(customUserDetailsService, jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
-        http.exceptionHandling((exceptionHandling) -> exceptionHandling
-                .authenticationEntryPoint(authenticationEntryPoint)
-                .accessDeniedHandler(accessDeniedHandler)
-        );
-
         // 권한 규칙 작성
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(AUTH_WHITELIST).permitAll()
-                .requestMatchers(HttpMethod.GET,"/tour/*").permitAll()
-                //@PreAuthorization을 사용하는 경우 모든 경로에 대한 인증 처리는 permit
-                .anyRequest().permitAll()
+                        .requestMatchers(AUTH_WHITELIST).permitAll()
+                        .requestMatchers(HttpMethod.GET,"/tour/*").permitAll()
+                        //@PreAuthorization을 사용하는 경우 모든 경로에 대한 인증 처리는 permit
+                        .anyRequest().permitAll());
+
+        http.exceptionHandling(exceptionHandling -> exceptionHandling
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
         );
 
         return http.build();
@@ -81,7 +80,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://nadueli.com", "http://localhost:3000", "https://www.nadueli.com", "https://admin.nadueli.com")
+                .allowedOrigins("https://nadueli.com", "http://localhost:3000", "https://www.nadueli.com", "https://admin.nadueli.com", "https://m.nadueli.com")
                 .allowedMethods("GET", "POST", "PATCH", "DELETE")
                 .allowCredentials(true);
     }

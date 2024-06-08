@@ -1,8 +1,12 @@
 package NotFound.picnic.controller;
 
+import NotFound.picnic.domain.Event;
 import NotFound.picnic.dto.event.AnnounceCreateDto;
 import NotFound.picnic.dto.event.EventCreateDto;
+import NotFound.picnic.dto.event.EventGetDto;
 import NotFound.picnic.dto.manage.*;
+import NotFound.picnic.enums.State;
+import NotFound.picnic.enums.EventType;
 import NotFound.picnic.service.ManageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
@@ -23,8 +26,9 @@ public class ManageController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/approval")
-    public ResponseEntity<List<ApprovalDto>> getApprovalList(Principal principal){
-        List<ApprovalDto> approvalDto = manageService.GetApprovalList(principal);
+    public ResponseEntity<List<ApprovalDto>> getApprovalList(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword,
+                                                             Principal principal){
+        List<ApprovalDto> approvalDto = manageService.GetApprovalList(keyword, principal);
         return ResponseEntity.ok().body(approvalDto);
     }
 
@@ -66,8 +70,8 @@ public class ManageController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/member")
-    public ResponseEntity<List<UserGetDto>> getUsers() {
-        List<UserGetDto> userGetDtoList = manageService.getUsers();
+    public ResponseEntity<List<UserGetDto>> getUsers(@RequestParam(required = false, defaultValue = "", name="keyword") String keyword) {
+        List<UserGetDto> userGetDtoList = manageService.getUsers(keyword);
         return ResponseEntity.ok().body(userGetDtoList);
     }
 
@@ -89,6 +93,30 @@ public class ManageController {
     @DeleteMapping("/member/{memberId}")
     public ResponseEntity<String> deleteUser(@PathVariable(name="memberId") Long memberId) {
         String res = manageService.DeleteUser(memberId);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/location")
+    public ResponseEntity<String> createLocation(LocationCreateDto locationCreateDto){
+        String response = manageService.CreateLocation(locationCreateDto);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/location/{locationId}")
+    public ResponseEntity<String> deleteLocation(@PathVariable(name="locationId") Long locationId) {
+        String res = manageService.DeleteLocation(locationId);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/announce")
+    public ResponseEntity<List<EventGetDto>> findEvent(
+            @RequestParam(required = false, defaultValue = "", name="div") String div,
+            @RequestParam(required = false, defaultValue = "", name="keyword") String keyword
+    ){
+        List<EventGetDto> res = manageService.FindEvent(div, keyword);
         return ResponseEntity.ok().body(res);
     }
 }

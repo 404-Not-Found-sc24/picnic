@@ -1,6 +1,7 @@
 package NotFound.picnic.controller;
 
 import NotFound.picnic.dto.schedule.*;
+import NotFound.picnic.exception.CustomException;
 import NotFound.picnic.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +34,23 @@ public class ScheduleController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/diary/{placeId}")
-    public ResponseEntity<String> createDiary(@PathVariable(name="placeId") Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
-        String message = scheduleService.createDiary(placeId, diaryCreateDto);
-        return ResponseEntity.ok().body(message);
+    public ResponseEntity<DiaryResponseDto> createDiary(@PathVariable(name="placeId") Long placeId, DiaryCreateDto diaryCreateDto) throws IOException {
+        DiaryResponseDto diaryResponseDto = scheduleService.createDiary(placeId, diaryCreateDto);
+        return ResponseEntity.ok().body(diaryResponseDto);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/diary/{diaryId}")
+    public ResponseEntity<String> updateDiary(@PathVariable(name="diaryId") Long diaryId,DiaryCreateDto diaryCreateDto, Principal principal) throws CustomException{
+        String res = scheduleService.UpdateDiary(diaryId, diaryCreateDto, principal);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/diary/{diaryId}")
+    public ResponseEntity<String> deleteDiary(@PathVariable(name="diaryId") Long diaryId, Principal principal){
+        String res = scheduleService.DeleteDiary(diaryId, principal);
+        return ResponseEntity.ok().body(res);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -83,6 +98,13 @@ public class ScheduleController {
     @PatchMapping("/{scheduleId}")
     public ResponseEntity<String> updateSchedule(@PathVariable(name="scheduleId") Long scheduleId, @RequestBody ScheduleCreateDto scheduleCreateDto) {
         String res = scheduleService.UpdateSchedule(scheduleCreateDto, scheduleId);
+        return ResponseEntity.ok().body(res);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/sharing/{scheduleId}")
+    public ResponseEntity<String> changeSharing(@PathVariable(name="scheduleId") Long scheduleId, Principal principal) throws CustomException {
+        String res = scheduleService.ChangeSharing(scheduleId, principal);
         return ResponseEntity.ok().body(res);
     }
 }
