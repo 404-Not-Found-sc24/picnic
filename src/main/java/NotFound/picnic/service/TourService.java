@@ -14,6 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -128,11 +130,26 @@ public class TourService {
 
         Schedule savedSchedule = scheduleRepository.save(scheduleNew);
         //Duplicate place
-        List<Place> places = placeRepository.findBySchedule(scheduleOld);
+        List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(scheduleOld);
+        if (places == null)
+            return savedSchedule.getScheduleId();
+
+        String ordinaryDate = places.getFirst().getDate(); // 복사한 일정의 날짜
+        LocalDate currentDate = parseStringToDate(scheduleDuplicateDto.getStartDate());  // 원하는 날짜
 
         for (Place place : places) {
+            int comparison = ordinaryDate.compareTo(place.getDate());
+            if (comparison < 0) {
+                ordinaryDate = place.getDate();
+                currentDate = currentDate.plusDays(1);
+            }
+            else if (comparison > 0)
+                throw new CustomException(ErrorCode.SERVER_ERROR);
+
+            String date = formatDateToString(currentDate);
+
             Place place_new = Place.builder()
-                    .date(place.getDate())
+                    .date(date)
                     .time(place.getTime())
                     .location(place.getLocation())
                     .schedule(savedSchedule)
@@ -141,6 +158,18 @@ public class TourService {
         }
 
         return savedSchedule.getScheduleId();
+    }
+
+    public LocalDate parseStringToDate(String dateString) {
+        // 날짜 형식 지정
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // 문자열을 LocalDate로 변환하여 반환
+        return LocalDate.parse(dateString, formatter);
+    }
+
+    public String formatDateToString(LocalDate date) {
+        // 날짜를 yyyy-MM-dd 형식의 문자열로 변환
+        return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
     public LocationDetailDto GetLocationDetail(Long locationId) {
