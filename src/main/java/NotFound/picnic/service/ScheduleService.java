@@ -422,6 +422,7 @@ public class ScheduleService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     public String UpdateSchedule (ScheduleCreateDto scheduleCreateDto, Long scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
@@ -433,7 +434,41 @@ public class ScheduleService {
 
         scheduleRepository.save(schedule);
 
+        List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(schedule);
+        if (places == null || places.isEmpty())
+            return "수정 완료";
+
+        String ordinaryDate = places.getFirst().getDate(); // 원래 일정의 날짜
+        LocalDate localDate = parseStringToDate(scheduleCreateDto.getStartDate());  // 원하는 날짜
+
+        for (Place place : places) {
+            int comparison = ordinaryDate.compareTo(place.getDate());
+            if (comparison < 0) {
+                ordinaryDate = place.getDate();
+                localDate = localDate.plusDays(1);
+            }
+            String date = formatDateToString(localDate);
+            if (date.compareTo(scheduleCreateDto.getEndDate()) > 0)  // 수정한 날짜가 원래 기간보다 짧을 경우 나머지 장소 버리기
+                placeRepository.delete(place);
+            else {
+                place.setDate(date);
+                placeRepository.save(place);
+            }
+        }
+
         return "수정 완료";
+    }
+
+    public LocalDate parseStringToDate(String dateString) {
+        // 날짜 형식 지정
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // 문자열을 LocalDate로 변환하여 반환
+        return LocalDate.parse(dateString, formatter);
+    }
+
+    public String formatDateToString(LocalDate date) {
+        // 날짜를 yyyy-MM-dd 형식의 문자열로 변환
+        return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
     public String ChangeSharing(Long scheduleId, Principal principal) throws CustomException{
