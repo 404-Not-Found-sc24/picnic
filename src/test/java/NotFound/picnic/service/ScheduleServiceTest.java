@@ -51,14 +51,10 @@ class ScheduleServiceTest {
     private ImageRepository imageRepository;
 
     @MockBean
-    private LocationRepository locationRepository;
-
-    @MockBean
     private LocationImageRepostiory locationImageRepostiory;
 
     @BeforeEach
     public void setUp() {
-        // No need for MockitoAnnotations.openMocks(this) when using @SpringBootTest with @MockBean
     }
 
     @Test

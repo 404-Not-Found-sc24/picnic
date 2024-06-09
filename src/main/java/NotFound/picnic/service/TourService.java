@@ -302,32 +302,38 @@ public class TourService {
     public List<DiaryGetDto> GetDiaries(Long locationId) {
         Optional<List<Place>> placeList = placeRepository.findAllByLocation_LocationId(locationId);
 
-        return placeList.map(places -> places.stream()
-                .map(place -> {
-                    Schedule schedule = scheduleRepository.findById(place.getSchedule().getScheduleId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
-                    Optional<Diary> diary = diaryRepository.findByPlace(place);
-                    if (diary.isPresent()) {
-                        Optional<Image> image = imageRepository.findTopByDiary(diary.get());
-                        String imageUrl = image.map(Image::getImageUrl).orElse(null);
+        return placeList.map(places -> {
+            Map<Long, Schedule> scheduleMap = new HashMap<>();
+            return places.stream()
+                    .map(place -> {
+                        Long scheduleId = place.getSchedule().getScheduleId();
+                        Schedule schedule = scheduleMap.computeIfAbsent(scheduleId, id ->
+                                scheduleRepository.findById(id)
+                                        .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND))
+                        );
+                        Optional<Diary> diary = diaryRepository.findByPlace(place);
+                        if (diary.isPresent()) {
+                            Optional<Image> image = imageRepository.findTopByDiary(diary.get());
+                            String imageUrl = image.map(Image::getImageUrl).orElse(null);
 
-                        return DiaryGetDto.builder()
-                                .diaryId(diary.get().getDiaryId())
-                                .placeId(place.getPlaceId())
-                                .userName(schedule.getMember().getName())
-                                .title(diary.get().getTitle())
-                                .date(place.getDate())
-                                .content(diary.get().getContent())
-                                .imageUrl(imageUrl)
-                                .build();
-                    } else {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        ).orElse(Collections.emptyList());
+                            return DiaryGetDto.builder()
+                                    .diaryId(diary.get().getDiaryId())
+                                    .placeId(place.getPlaceId())
+                                    .userName(schedule.getMember().getName())
+                                    .title(diary.get().getTitle())
+                                    .date(place.getDate())
+                                    .content(diary.get().getContent())
+                                    .imageUrl(imageUrl)
+                                    .build();
+                        } else {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }).orElse(Collections.emptyList());
     }
+
 
     public DiaryDetailDto GetDiaryDetail(Long diaryId){
         Diary diary = diaryRepository.findById(diaryId)
