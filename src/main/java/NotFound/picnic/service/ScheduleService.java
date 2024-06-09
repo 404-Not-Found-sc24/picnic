@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -70,11 +71,14 @@ public class ScheduleService {
             List<Place> oldPlaces = placeRepository.findBySchedule(schedule);
             List<Place> placesToRemove = new ArrayList<>();
 
+            // 수정 가능한 리스트로 변환
+            List<PlaceCreateDto> modifiablePlaceCreateDtoList = new ArrayList<>(placeCreateDtoList);
+
             oldPlaces.stream()
-                    .filter(oldPlace -> placeCreateDtoList.stream()
+                    .filter(oldPlace -> modifiablePlaceCreateDtoList.stream()
                             .anyMatch(placeCreateDto -> oldPlace.getLocation().getLocationId().equals(placeCreateDto.getLocationId())))
                     .forEach(oldPlace -> {
-                        PlaceCreateDto matchingDto = placeCreateDtoList.stream()
+                        PlaceCreateDto matchingDto = modifiablePlaceCreateDtoList.stream()
                                 .filter(placeCreateDto -> oldPlace.getLocation().getLocationId().equals(placeCreateDto.getLocationId()))
                                 .findFirst()
                                 .orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR)); // 일치하는 dto가 없는 경우 예외 처리
@@ -82,13 +86,14 @@ public class ScheduleService {
                         oldPlace.setDate(matchingDto.getDate());
                         oldPlace.setTime(matchingDto.getTime());
                         placeRepository.save(oldPlace);
-                        // scheduleCreateDtoList에서 해당 객체를 제거
-                        placeCreateDtoList.remove(matchingDto);
+                        // modifiablePlaceCreateDtoList에서 해당 객체를 제거
+                        modifiablePlaceCreateDtoList.remove(matchingDto);
                         placesToRemove.add(oldPlace);
                     });
 
             oldPlaces.removeAll(placesToRemove);
             placeRepository.deleteAll(oldPlaces);
+            placeCreateDtoList = modifiablePlaceCreateDtoList;
         }
 
         // 추가된 장소 제외하고는 새로 추가
@@ -96,7 +101,7 @@ public class ScheduleService {
                 .map(placeCreateDto -> Place.builder()
                         .location(locationRepository.findById(placeCreateDto.getLocationId())
                                 .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND)))
-                                .date(placeCreateDto.getDate())
+                        .date(placeCreateDto.getDate())
                         .time(placeCreateDto.getTime())
                         .schedule(schedule)
                         .build())
@@ -422,18 +427,64 @@ public class ScheduleService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     public String UpdateSchedule (ScheduleCreateDto scheduleCreateDto, Long scheduleId) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
 
         if (scheduleCreateDto.getName() != null) schedule.setName(scheduleCreateDto.getName());
         if (scheduleCreateDto.getLocation() != null) schedule.setLocation(scheduleCreateDto.getLocation());
-        if (scheduleCreateDto.getStartDate() != null) schedule.setStartDate(scheduleCreateDto.getStartDate());
-        if (scheduleCreateDto.getEndDate() != null) schedule.setEndDate(scheduleCreateDto.getEndDate());
+
+
+        if ((scheduleCreateDto.getStartDate() != null && scheduleCreateDto.getEndDate()!= null)
+        && (!scheduleCreateDto.getStartDate().equals(schedule.getStartDate()) || !scheduleCreateDto.getEndDate().equals(schedule.getEndDate())))
+        {
+            List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(schedule);
+            if (places != null) {
+
+                String ordinaryDate = places.getFirst().getDate(); // 원래 일정의 날짜
+                LocalDate localDate = parseStringToDate(scheduleCreateDto.getStartDate());  // 원하는 날짜
+                if (!Objects.equals(ordinaryDate, schedule.getStartDate())) {
+                    LocalDate ordinaryLocalDate = parseStringToDate(ordinaryDate);
+                    LocalDate startDate = parseStringToDate(schedule.getStartDate());
+                    localDate = localDate.plus(Period.between(startDate, ordinaryLocalDate));
+                }
+
+                for (Place place : places) {
+                    int comparison = ordinaryDate.compareTo(place.getDate());
+                    if (comparison < 0) {
+                        ordinaryDate = place.getDate();
+                        localDate = localDate.plusDays(1);
+                    }
+                    String date = formatDateToString(localDate);
+                    if (date.compareTo(scheduleCreateDto.getEndDate()) > 0)  // 수정한 날짜가 원래 기간보다 짧을 경우 나머지 장소 버리기
+                        placeRepository.delete(place);
+                    else {
+                        place.setDate(date);
+                        placeRepository.save(place);
+                    }
+                }
+            }
+
+            schedule.setStartDate(scheduleCreateDto.getStartDate());
+            schedule.setEndDate(scheduleCreateDto.getEndDate());
+        }
 
         scheduleRepository.save(schedule);
 
         return "수정 완료";
+    }
+
+    public LocalDate parseStringToDate(String dateString) {
+        // 날짜 형식 지정
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // 문자열을 LocalDate로 변환하여 반환
+        return LocalDate.parse(dateString, formatter);
+    }
+
+    public String formatDateToString(LocalDate date) {
+        // 날짜를 yyyy-MM-dd 형식의 문자열로 변환
+        return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
     public String ChangeSharing(Long scheduleId, Principal principal) throws CustomException{
