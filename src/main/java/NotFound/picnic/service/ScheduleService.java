@@ -70,11 +70,14 @@ public class ScheduleService {
             List<Place> oldPlaces = placeRepository.findBySchedule(schedule);
             List<Place> placesToRemove = new ArrayList<>();
 
+            // 수정 가능한 리스트로 변환
+            List<PlaceCreateDto> modifiablePlaceCreateDtoList = new ArrayList<>(placeCreateDtoList);
+
             oldPlaces.stream()
-                    .filter(oldPlace -> placeCreateDtoList.stream()
+                    .filter(oldPlace -> modifiablePlaceCreateDtoList.stream()
                             .anyMatch(placeCreateDto -> oldPlace.getLocation().getLocationId().equals(placeCreateDto.getLocationId())))
                     .forEach(oldPlace -> {
-                        PlaceCreateDto matchingDto = placeCreateDtoList.stream()
+                        PlaceCreateDto matchingDto = modifiablePlaceCreateDtoList.stream()
                                 .filter(placeCreateDto -> oldPlace.getLocation().getLocationId().equals(placeCreateDto.getLocationId()))
                                 .findFirst()
                                 .orElseThrow(() -> new CustomException(ErrorCode.SERVER_ERROR)); // 일치하는 dto가 없는 경우 예외 처리
@@ -82,13 +85,14 @@ public class ScheduleService {
                         oldPlace.setDate(matchingDto.getDate());
                         oldPlace.setTime(matchingDto.getTime());
                         placeRepository.save(oldPlace);
-                        // scheduleCreateDtoList에서 해당 객체를 제거
-                        placeCreateDtoList.remove(matchingDto);
+                        // modifiablePlaceCreateDtoList에서 해당 객체를 제거
+                        modifiablePlaceCreateDtoList.remove(matchingDto);
                         placesToRemove.add(oldPlace);
                     });
 
             oldPlaces.removeAll(placesToRemove);
             placeRepository.deleteAll(oldPlaces);
+            placeCreateDtoList = modifiablePlaceCreateDtoList;
         }
 
         // 추가된 장소 제외하고는 새로 추가
@@ -96,7 +100,7 @@ public class ScheduleService {
                 .map(placeCreateDto -> Place.builder()
                         .location(locationRepository.findById(placeCreateDto.getLocationId())
                                 .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND)))
-                                .date(placeCreateDto.getDate())
+                        .date(placeCreateDto.getDate())
                         .time(placeCreateDto.getTime())
                         .schedule(schedule)
                         .build())
