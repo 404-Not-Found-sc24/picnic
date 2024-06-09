@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -129,11 +130,19 @@ public class TourService {
                 .build();
 
         Schedule savedSchedule = scheduleRepository.save(scheduleNew);
+      
+        List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(scheduleOld);
+        if (places == null)
+            return savedSchedule.getScheduleId();
 
-        // Duplicate place
-        List<Place> places = placeRepository.findBySchedule(scheduleOld);
-        if (places.isEmpty()) {
-            throw new CustomException(ErrorCode.PLACE_NOT_FOUND); // 필요에 따라 예외 처리
+        String ordinaryDate = places.getFirst().getDate(); // 복사한 일정의 첫번째 장소의 날짜
+        LocalDate currentDate = parseStringToDate(scheduleDuplicateDto.getStartDate());  // 원하는 날짜
+
+
+        if (!Objects.equals(ordinaryDate, scheduleOld.getStartDate())) {
+            LocalDate ordinaryLocalDate = parseStringToDate(ordinaryDate);
+            LocalDate startDate = parseStringToDate(scheduleOld.getStartDate());
+            currentDate = currentDate.plus(Period.between(startDate, ordinaryLocalDate));
         }
 
         for (Place place : places) {
