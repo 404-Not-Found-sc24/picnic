@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -433,32 +434,43 @@ public class ScheduleService {
 
         if (scheduleCreateDto.getName() != null) schedule.setName(scheduleCreateDto.getName());
         if (scheduleCreateDto.getLocation() != null) schedule.setLocation(scheduleCreateDto.getLocation());
-        if (scheduleCreateDto.getStartDate() != null) schedule.setStartDate(scheduleCreateDto.getStartDate());
-        if (scheduleCreateDto.getEndDate() != null) schedule.setEndDate(scheduleCreateDto.getEndDate());
+
+
+        if ((scheduleCreateDto.getStartDate() != null && scheduleCreateDto.getEndDate()!= null)
+        && (!scheduleCreateDto.getStartDate().equals(schedule.getStartDate()) || !scheduleCreateDto.getEndDate().equals(schedule.getEndDate())))
+        {
+            List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(schedule);
+            if (places != null) {
+
+                String ordinaryDate = places.getFirst().getDate(); // 원래 일정의 날짜
+                LocalDate localDate = parseStringToDate(scheduleCreateDto.getStartDate());  // 원하는 날짜
+                if (!Objects.equals(ordinaryDate, schedule.getStartDate())) {
+                    LocalDate ordinaryLocalDate = parseStringToDate(ordinaryDate);
+                    LocalDate startDate = parseStringToDate(schedule.getStartDate());
+                    localDate = localDate.plus(Period.between(startDate, ordinaryLocalDate));
+                }
+
+                for (Place place : places) {
+                    int comparison = ordinaryDate.compareTo(place.getDate());
+                    if (comparison < 0) {
+                        ordinaryDate = place.getDate();
+                        localDate = localDate.plusDays(1);
+                    }
+                    String date = formatDateToString(localDate);
+                    if (date.compareTo(scheduleCreateDto.getEndDate()) > 0)  // 수정한 날짜가 원래 기간보다 짧을 경우 나머지 장소 버리기
+                        placeRepository.delete(place);
+                    else {
+                        place.setDate(date);
+                        placeRepository.save(place);
+                    }
+                }
+            }
+
+            schedule.setStartDate(scheduleCreateDto.getStartDate());
+            schedule.setEndDate(scheduleCreateDto.getEndDate());
+        }
 
         scheduleRepository.save(schedule);
-
-        List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(schedule);
-        if (places == null || places.isEmpty())
-            return "수정 완료";
-
-        String ordinaryDate = places.getFirst().getDate(); // 원래 일정의 날짜
-        LocalDate localDate = parseStringToDate(scheduleCreateDto.getStartDate());  // 원하는 날짜
-
-        for (Place place : places) {
-            int comparison = ordinaryDate.compareTo(place.getDate());
-            if (comparison < 0) {
-                ordinaryDate = place.getDate();
-                localDate = localDate.plusDays(1);
-            }
-            String date = formatDateToString(localDate);
-            if (date.compareTo(scheduleCreateDto.getEndDate()) > 0)  // 수정한 날짜가 원래 기간보다 짧을 경우 나머지 장소 버리기
-                placeRepository.delete(place);
-            else {
-                place.setDate(date);
-                placeRepository.save(place);
-            }
-        }
 
         return "수정 완료";
     }
