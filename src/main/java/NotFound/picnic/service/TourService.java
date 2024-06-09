@@ -110,11 +110,11 @@ public class TourService {
     public Long DuplicateSchedule(Long scheduleId, ScheduleDuplicateDto scheduleDuplicateDto, Principal principal) {
         // User validate
         Optional<Member> optionalMember = memberRepository.findMemberByEmail(principal.getName());
-
         if (optionalMember.isEmpty()) {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
         Member member = optionalMember.get();
+
         // schedule Id validate
         Schedule scheduleOld = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SCHEDULE_NOT_FOUND));
@@ -129,36 +129,26 @@ public class TourService {
                 .build();
 
         Schedule savedSchedule = scheduleRepository.save(scheduleNew);
-        //Duplicate place
-        List<Place> places = placeRepository.findByScheduleOrderByDateAscTimeAsc(scheduleOld);
-        if (places == null)
-            return savedSchedule.getScheduleId();
 
-        String ordinaryDate = places.getFirst().getDate(); // 복사한 일정의 날짜
-        LocalDate currentDate = parseStringToDate(scheduleDuplicateDto.getStartDate());  // 원하는 날짜
+        // Duplicate place
+        List<Place> places = placeRepository.findBySchedule(scheduleOld);
+        if (places.isEmpty()) {
+            throw new CustomException(ErrorCode.PLACE_NOT_FOUND); // 필요에 따라 예외 처리
+        }
 
         for (Place place : places) {
-            int comparison = ordinaryDate.compareTo(place.getDate());
-            if (comparison < 0) {
-                ordinaryDate = place.getDate();
-                currentDate = currentDate.plusDays(1);
-            }
-            else if (comparison > 0)
-                throw new CustomException(ErrorCode.SERVER_ERROR);
-
-            String date = formatDateToString(currentDate);
-
-            Place place_new = Place.builder()
-                    .date(date)
+            Place placeNew = Place.builder()
+                    .date(place.getDate())
                     .time(place.getTime())
                     .location(place.getLocation())
                     .schedule(savedSchedule)
                     .build();
-            Place test = placeRepository.save(place_new);
+            placeRepository.save(placeNew);
         }
 
         return savedSchedule.getScheduleId();
     }
+
 
     public LocalDate parseStringToDate(String dateString) {
         // 날짜 형식 지정

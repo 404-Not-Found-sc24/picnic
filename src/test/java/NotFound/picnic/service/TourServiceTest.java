@@ -236,11 +236,16 @@ class TourServiceTest {
                 .member(member)
                 .build();
 
+        Location location = Location.builder()
+                .locationId(1L)
+                .name("Test Location")
+                .build();
+
         Place place1 = Place.builder()
                 .placeId(1L)
                 .date("2024-06-02")
                 .time("10:00")
-                .location(new Location())
+                .location(location)
                 .schedule(scheduleOld)
                 .build();
 
@@ -248,7 +253,7 @@ class TourServiceTest {
                 .placeId(2L)
                 .date("2024-06-03")
                 .time("11:00")
-                .location(new Location())
+                .location(location)
                 .schedule(scheduleOld)
                 .build();
 
@@ -273,6 +278,7 @@ class TourServiceTest {
         verify(placeRepository, times(1)).findBySchedule(scheduleOld);
         verify(placeRepository, times(2)).save(any(Place.class)); // 두 개의 장소가 저장되어야 함
     }
+
 
 
     @Test
