@@ -2,28 +2,21 @@ package NotFound.picnic.service;
 
 import NotFound.picnic.domain.*;
 import NotFound.picnic.dto.tour.*;
-import NotFound.picnic.dto.schedule.*;
 import NotFound.picnic.enums.State;
-import NotFound.picnic.exception.CustomException;
-import NotFound.picnic.exception.ErrorCode;
 import NotFound.picnic.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
