@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@TestPropertySource(locations = "classpath:application-local.properties")
+@TestPropertySource(locations = "classpath:application-dev.properties")
 class ScheduleServiceTest {
 
     @Autowired
