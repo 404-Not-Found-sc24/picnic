@@ -212,6 +212,9 @@ public class ManageService {
     }
 
     private void saveEventImages(List<MultipartFile> images, Event event) {
+        if(images == null || images.isEmpty()){
+            return;
+        }
             images.forEach(image -> {
                 try {
                     if (!image.isEmpty()){
@@ -438,6 +441,9 @@ public List<EventGetDto> FindEvent(String div, String keyword){
 }
 
 private void saveLocationImages(List<MultipartFile> images, Location location) {
+        if(images == null || images.isEmpty()){
+            return;
+        }
     images.forEach(image -> {
         try {
             if (!image.isEmpty()){
