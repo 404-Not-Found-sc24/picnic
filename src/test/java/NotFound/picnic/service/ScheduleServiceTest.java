@@ -739,45 +739,63 @@ class ScheduleServiceTest {
         verify(diaryRepository, times(1)).findAllBySchedule(schedule2);
     }
 
-// 수정 필요
-//    @Test
-//    @DisplayName("일정 수정")
-//    void updateSchedule() {
-//        // Given
-//        Long scheduleId = 1L;
-//
-//        ScheduleCreateDto scheduleCreateDto = ScheduleCreateDto.builder()
-//                .name("Updated Schedule")
-//                .location("Updated Location")
-//                .startDate("2024-06-15")
-//                .endDate("2024-06-20")
-//                .build();
-//
-//        Schedule existingSchedule = Schedule.builder()
-//                .scheduleId(scheduleId)
-//                .name("Original Schedule")
-//                .location("Original Location")
-//                .startDate("2024-06-01")
-//                .endDate("2024-06-10")
-//                .build();
-//
-//        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(existingSchedule));
-//        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(invocation -> invocation.getArgument(0));
-//
-//        // When
-//        String result = scheduleService.UpdateSchedule(scheduleCreateDto, scheduleId);
-//
-//        // Then
-//        assertEquals("수정 완료", result);
-//
-//        assertEquals("Updated Schedule", existingSchedule.getName());
-//        assertEquals("Updated Location", existingSchedule.getLocation());
-//        assertEquals("2024-06-15", existingSchedule.getStartDate());
-//        assertEquals("2024-06-20", existingSchedule.getEndDate());
-//
-//        verify(scheduleRepository, times(1)).findById(scheduleId);
-//        verify(scheduleRepository, times(1)).save(existingSchedule);
-//    }
+    @Test
+    @DisplayName("일정 수정")
+    void updateSchedule() {
+        // Given
+        Long scheduleId = 1L;
+        ScheduleCreateDto scheduleCreateDto = ScheduleCreateDto.builder()
+                .name("Updated Schedule")
+                .location("Updated Location")
+                .startDate("2024-07-01")
+                .endDate("2024-07-10")
+                .build();
+
+        Schedule schedule = Schedule.builder()
+                .scheduleId(scheduleId)
+                .name("Old Schedule")
+                .location("Old Location")
+                .startDate("2024-06-01")
+                .endDate("2024-06-10")
+                .build();
+
+        Place place1 = Place.builder()
+                .placeId(1L)
+                .date("2024-06-02")
+                .time("10:00")
+                .schedule(schedule)
+                .build();
+
+        Place place2 = Place.builder()
+                .placeId(2L)
+                .date("2024-06-03")
+                .time("11:00")
+                .schedule(schedule)
+                .build();
+
+        List<Place> oldPlaces = Arrays.asList(place1, place2);
+
+        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+        when(placeRepository.findByScheduleOrderByDateAscTimeAsc(schedule)).thenReturn(oldPlaces);
+
+        // When
+        String result = scheduleService.UpdateSchedule(scheduleCreateDto, scheduleId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("수정 완료", result);
+
+        verify(scheduleRepository, times(1)).findById(scheduleId);
+        verify(scheduleRepository, times(1)).save(any(Schedule.class));
+        verify(placeRepository, times(1)).findByScheduleOrderByDateAscTimeAsc(schedule);
+        verify(placeRepository, times(2)).save(any(Place.class)); // 두 개의 장소가 업데이트되어야 함
+        verify(placeRepository, never()).delete(any(Place.class)); // 장소 삭제가 일어나지 않아야 함
+
+        assertEquals(scheduleCreateDto.getName(), schedule.getName());
+        assertEquals(scheduleCreateDto.getLocation(), schedule.getLocation());
+        assertEquals(scheduleCreateDto.getStartDate(), schedule.getStartDate());
+        assertEquals(scheduleCreateDto.getEndDate(), schedule.getEndDate());
+    }
 
 
     @Test

@@ -191,87 +191,85 @@ class TourServiceTest {
         verify(cityRepository, times(1)).findAllByNameContainingOrNameContaining(keyword, keyword2);
     }
 
-// 수정 필요
-//    @Test
-//    @DisplayName("일정 복사")
-//    void duplicateSchedule() {
-//        // Given
-//        Long scheduleId = 1L;
-//        String email = "test@example.com";
-//        Principal principal = mock(Principal.class);
-//        when(principal.getName()).thenReturn(email);
-//
-//        Member member = new Member();
-//        member.setEmail(email);
-//        member.setMemberId(1L);
-//
-//        Schedule scheduleOld = Schedule.builder()
-//                .scheduleId(scheduleId)
-//                .name("Old Schedule")
-//                .location("Old Location")
-//                .startDate("2024-06-01")
-//                .endDate("2024-06-10")
-//                .member(member)
-//                .build();
-//
-//        ScheduleDuplicateDto scheduleDuplicateDto = ScheduleDuplicateDto.builder()
-//                .name("New Schedule")
-//                .startDate("2024-07-01")
-//                .endDate("2024-07-10")
-//                .build();
-//
-//        Schedule scheduleNew = Schedule.builder()
-//                .scheduleId(2L)
-//                .name("New Schedule")
-//                .location("Old Location")
-//                .startDate("2024-07-01")
-//                .endDate("2024-07-10")
-//                .member(member)
-//                .build();
-//
-//        Location location = Location.builder()
-//                .locationId(1L)
-//                .name("Test Location")
-//                .build();
-//
-//        Place place1 = Place.builder()
-//                .placeId(1L)
-//                .date("2024-06-02")
-//                .time("10:00")
-//                .location(location)
-//                .schedule(scheduleOld)
-//                .build();
-//
-//        Place place2 = Place.builder()
-//                .placeId(2L)
-//                .date("2024-06-03")
-//                .time("11:00")
-//                .location(location)
-//                .schedule(scheduleOld)
-//                .build();
-//
-//        List<Place> oldPlaces = Arrays.asList(place1, place2);
-//
-//        when(memberRepository.findMemberByEmail(email)).thenReturn(Optional.of(member));
-//        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(scheduleOld));
-//        when(scheduleRepository.save(any(Schedule.class))).thenReturn(scheduleNew);
-//        when(placeRepository.findBySchedule(scheduleOld)).thenReturn(oldPlaces);
-//        when(placeRepository.save(any(Place.class))).thenAnswer(invocation -> invocation.getArgument(0));
-//
-//        // When
-//        Long newScheduleId = tourService.DuplicateSchedule(scheduleId, scheduleDuplicateDto, principal);
-//
-//        // Then
-//        assertNotNull(newScheduleId);
-//        assertEquals(scheduleNew.getScheduleId(), newScheduleId);
-//
-//        verify(memberRepository, times(1)).findMemberByEmail(email);
-//        verify(scheduleRepository, times(1)).findById(scheduleId);
-//        verify(scheduleRepository, times(1)).save(any(Schedule.class));
-//        verify(placeRepository, times(1)).findBySchedule(scheduleOld);
-//        verify(placeRepository, times(2)).save(any(Place.class)); // 두 개의 장소가 저장되어야 함
-//    }
+    @Test
+    @DisplayName("일정 복사")
+    void duplicateSchedule() {
+        // Given
+        Long scheduleId = 1L;
+        String email = "test@example.com";
+        Principal principal = mock(Principal.class);
+        when(principal.getName()).thenReturn(email);
 
+        Member member = new Member();
+        member.setEmail(email);
+        member.setMemberId(1L);
+
+        Schedule scheduleOld = Schedule.builder()
+                .scheduleId(scheduleId)
+                .name("Old Schedule")
+                .location("Old Location")
+                .startDate("2024-06-01")
+                .endDate("2024-06-10")
+                .member(member)
+                .build();
+
+        ScheduleDuplicateDto scheduleDuplicateDto = ScheduleDuplicateDto.builder()
+                .name("New Schedule")
+                .startDate("2024-07-01")
+                .endDate("2024-07-10")
+                .build();
+
+        Schedule scheduleNew = Schedule.builder()
+                .scheduleId(2L)
+                .name("New Schedule")
+                .location("Old Location")
+                .startDate("2024-07-01")
+                .endDate("2024-07-10")
+                .member(member)
+                .build();
+
+        Location location = Location.builder()
+                .locationId(1L)
+                .name("Test Location")
+                .build();
+
+        Place place1 = Place.builder()
+                .placeId(1L)
+                .date("2024-06-02")
+                .time("10:00")
+                .location(location)
+                .schedule(scheduleOld)
+                .build();
+
+        Place place2 = Place.builder()
+                .placeId(2L)
+                .date("2024-06-03")
+                .time("11:00")
+                .location(location)
+                .schedule(scheduleOld)
+                .build();
+
+        List<Place> oldPlaces = Arrays.asList(place1, place2);
+
+        when(memberRepository.findMemberByEmail(email)).thenReturn(Optional.of(member));
+        when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(scheduleOld));
+        when(scheduleRepository.save(any(Schedule.class))).thenReturn(scheduleNew);
+        when(placeRepository.findByScheduleOrderByDateAscTimeAsc(scheduleOld)).thenReturn(oldPlaces);
+        when(placeRepository.save(any(Place.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        Long newScheduleId = tourService.DuplicateSchedule(scheduleId, scheduleDuplicateDto, principal);
+
+        // Then
+        assertNotNull(newScheduleId);
+        assertEquals(scheduleNew.getScheduleId(), newScheduleId);
+
+        verify(memberRepository, times(1)).findMemberByEmail(email);
+        verify(scheduleRepository, times(1)).findById(scheduleId);
+        verify(scheduleRepository, times(1)).save(any(Schedule.class));
+        verify(placeRepository, times(1)).findByScheduleOrderByDateAscTimeAsc(scheduleOld);
+        verify(placeRepository, times(2)).save(any(Place.class)); // 두 개의 장소가 저장되어야 함
+    }
 
 
     @Test
